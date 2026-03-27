@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>钢材重量计算器</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --line:#dbe3ef;
+      --blue:#2563eb;
+      --blue-soft:#eaf2ff;
+      --green:#16a34a;
+      --green-soft:#ebf9f0;
+      --orange:#d97706;
+      --orange-soft:#fff5e6;
+      --purple:#7c3aed;
+      --purple-soft:#f3ecff;
+      --red:#dc2626;
+      --red-soft:#fff1f2;
+      --shadow:0 16px 40px rgba(15, 23, 42, 0.08);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",Arial,sans-serif;
+      background:linear-gradient(180deg,#eef5ff 0%, #f8fbff 180px, var(--bg) 180px);
+      color:var(--text);
+    }
+
+    .container{
+      max-width:1280px;
+      margin:0 auto;
+      padding:24px 18px 40px;
+    }
+
+    .hero{
+      background:linear-gradient(135deg,#1849d6 0%,#2563eb 40%,#4f46e5 100%);
+      color:#fff;
+      border-radius:24px;
+      padding:28px 28px 24px;
+      box-shadow:var(--shadow);
+      margin-bottom:20px;
+    }
+
+    .hero h1{
+      margin:0 0 12px;
+      font-size:30px;
+      line-height:1.2;
+    }
+
+    .hero p{
+      margin:0;
+      opacity:0.95;
+      line-height:1.7;
+      font-size:15px;
+      max-width:980px;
+    }
+
+    .tag-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .tag{
+      background:rgba(255,255,255,0.14);
+      border:1px solid rgba(255,255,255,0.2);
+      color:#fff;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:13px;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:1.1fr 0.9fr;
+      gap:20px;
+      align-items:start;
+    }
+
+    .panel{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      border:1px solid rgba(219,227,239,0.8);
+    }
+
+    .panel-head{
+      padding:18px 20px;
+      border-bottom:1px solid var(--line);
+      background:#fbfdff;
+    }
+
+    .panel-head h2{
+      margin:0 0 8px;
+      font-size:20px;
+    }
+
+    .panel-head p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:14px;
+    }
+
+    .panel-body{
+      padding:20px;
+    }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      margin-bottom:16px;
+      background:#fff;
+    }
+
+    .card:last-child{margin-bottom:0;}
+
+    .card.blue{
+      background:linear-gradient(180deg,#ffffff 0%, var(--blue-soft) 100%);
+      border-color:#cfe0ff;
+    }
+    .card.green{
+      background:linear-gradient(180deg,#ffffff 0%, var(--green-soft) 100%);
+      border-color:#cdeed9;
+    }
+    .card.orange{
+      background:linear-gradient(180deg,#ffffff 0%, var(--orange-soft) 100%);
+      border-color:#ffe1b7;
+    }
+    .card.purple{
+      background:linear-gradient(180deg,#ffffff 0%, var(--purple-soft) 100%);
+      border-color:#e2d3ff;
+    }
+
+    .card-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .card-title h3{
+      margin:0;
+      font-size:16px;
+    }
+
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.6;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .grid-1{grid-template-columns:1fr;}
+    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr));}
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .field label{
+      font-size:13px;
+      color:#374151;
+      font-weight:600;
+    }
+
+    .field input,
+    .field select,
+    .field textarea{
+      width:100%;
+      border:1px solid #cfd8e3;
+      border-radius:12px;
+      padding:12px 12px;
+      font-size:14px;
+      color:var(--text);
+      background:#fff;
+      outline:none;
+      transition:all .18s ease;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus{
+      border-color:#7aa9ff;
+      box-shadow:0 0 0 4px rgba(37,99,235,.10);
+    }
+
+    .field small{
+      color:var(--muted);
+      line-height:1.5;
+      font-size:12px;
+    }
+
+    .inline-note{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      background:rgba(255,255,255,0.7);
+      border:1px dashed #cfd8e3;
+      font-size:13px;
+      color:#475569;
+      line-height:1.6;
+    }
+
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:18px;
+    }
+
+    button{
+      border:none;
+      border-radius:14px;
+      padding:12px 18px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+    }
+
+    button:hover{
+      transform:translateY(-1px);
+    }
+
+    .btn-primary{
+      background:linear-gradient(135deg,#2563eb,#4f46e5);
+      color:#fff;
+      box-shadow:0 10px 24px rgba(37,99,235,0.22);
+    }
+
+    .btn-success{
+      background:linear-gradient(135deg,#16a34a,#0f9f74);
+      color:#fff;
+      box-shadow:0 10px 24px rgba(22,163,74,0.18);
+    }
+
+    .btn-light{
+      background:#eef2f7;
+      color:#1f2937;
+    }
+
+    .btn-danger{
+      background:#fff1f2;
+      color:#b91c1c;
+      border:1px solid #fecdd3;
+    }
+
+    .result-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+      margin-bottom:14px;
+    }
+
+    .result-item{
+      background:#fff;
+      border:1px solid #cdeed9;
+      border-radius:16px;
+      padding:16px;
+    }
+
+    .result-item .label{
+      color:#4b5563;
+      font-size:13px;
+      margin-bottom:8px;
+    }
+
+    .result-item .value{
+      font-size:24px;
+      font-weight:800;
+      color:#0f172a;
+      word-break:break-word;
+    }
+
+    .result-item .sub{
+      margin-top:6px;
+      color:#6b7280;
+      font-size:12px;
+    }
+
+    .formula{
+      background:rgba(255,255,255,0.85);
+      border:1px dashed #cdeed9;
+      border-radius:14px;
+      padding:14px;
+      line-height:1.7;
+      color:#334155;
+      font-size:13px;
+    }
+
+    .summary-bar{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:16px;
+    }
+
+    .summary-box{
+      background:#fff;
+      border-radius:16px;
+      border:1px solid var(--line);
+      padding:16px;
+    }
+
+    .summary-box .label{
+      color:#6b7280;
+      font-size:13px;
+      margin-bottom:8px;
+    }
+
+    .summary-box .value{
+      font-size:24px;
+      font-weight:800;
+    }
+
+    .summary-box.blue-border{border-color:#cfe0ff;}
+    .summary-box.green-border{border-color:#cdeed9;}
+    .summary-box.orange-border{border-color:#ffe1b7;}
+
+    .table-wrap{
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:#fff;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:850px;
+    }
+
+    th, td{
+      padding:12px 10px;
+      border-bottom:1px solid #edf2f7;
+      text-align:left;
+      font-size:13px;
+      vertical-align:top;
+    }
+
+    th{
+      background:#f8fbff;
+      color:#334155;
+      font-weight:700;
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+
+    tbody tr:hover{
+      background:#fafcff;
+    }
+
+    .empty{
+      padding:22px;
+      text-align:center;
+      color:#6b7280;
+      font-size:14px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      background:#eff6ff;
+      color:#1d4ed8;
+      border:1px solid #dbeafe;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .warn-list{
+      margin:0;
+      padding-left:18px;
+      color:#475569;
+      line-height:1.8;
+      font-size:13px;
+    }
+
+    .footer-note{
+      margin-top:18px;
+      color:#6b7280;
+      font-size:12px;
+      line-height:1.7;
+    }
+
+    .delete-btn{
+      padding:8px 10px;
+      border-radius:10px;
+      font-size:12px;
+      font-weight:700;
+      background:#fff1f2;
+      color:#b91c1c;
+      border:1px solid #fecdd3;
+    }
+
+    @media (max-width: 1080px){
+      .layout{grid-template-columns:1fr;}
+    }
+
+    @media (max-width: 720px){
+      .grid,
+      .grid-3,
+      .result-grid,
+      .summary-bar{
+        grid-template-columns:1fr;
+      }
+      .hero h1{font-size:24px;}
+      .panel-body, .panel-head, .hero{padding:18px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>钢材重量计算器（HTML 单文件版）</h1>
+      <p>
+        适合现场快速核算理论重量与金额。支持圆钢、钢管、方管、矩形管、实心方钢、扁钢、钢板、花纹板、角钢、工字钢、槽钢、H 型钢、钢筋等常见钢材。
+        圆钢/板材类按尺寸自动计算，型钢类可直接选常用规格并自动带出理论单位重，也支持手动修正。
+      </p>
+      <div class="tag-row">
+        <span class="tag">默认密度：碳钢 7850 kg/m³</span>
+        <span class="tag">支持塔卡单价</span>
+        <span class="tag">支持加入清单汇总</span>
+        <span class="tag">支持修改理论单位重</span>
+      </div>
+    </section>
+
+    <div class="layout">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>输入与计算</h2>
+          <p>先选择钢材类型，再输入尺寸、长度、数量、密度和单价，点击“立即计算”。</p>
+        </div>
+        <div class="panel-body">
+          <div class="card blue">
+            <div class="card-title">
+              <h3>1. 钢材类型与规格</h3>
+              <span class="pill">蓝色区域：规格与尺寸</span>
+            </div>
+
+            <div class="grid">
+              <div class="field">
+                <label for="steelType">钢材种类</label>
+                <select id="steelType"></select>
+                <small>选择不同钢材后，下面会自动切换对应输入项。</small>
+              </div>
+              <div class="field">
+                <label for="materialPreset">材料密度预设</label>
+                <select id="materialPreset"></select>
+                <small>可先选预设，再根据需要手动修改密度值。</small>
+              </div>
+            </div>
+
+            <div id="dynamicForm" style="margin-top:16px;"></div>
+          </div>
+
+          <div class="card purple">
+            <div class="card-title">
+              <h3>2. 密度与单价</h3>
+              <span class="pill" style="background:#f5f3ff;color:#6d28d9;border-color:#e9d5ff;">紫色区域：材料参数</span>
+            </div>
+
+            <div class="grid">
+              <div class="field">
+                <label for="density">材料密度（kg/m³）</label>
+                <input id="density" type="number" step="1" min="1" value="7850" />
+                <small>常用碳钢默认 7850；不锈钢、铝、铜等可切换预设后自动带出。</small>
+              </div>
+              <div class="field">
+                <label for="pricePerKg">单价（塔卡 / kg）</label>
+                <input id="pricePerKg" type="number" step="0.01" min="0" value="0" />
+                <small>输入钢材采购单价后，可自动算出总金额。</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn-primary" id="calcBtn">立即计算</button>
+            <button class="btn-success" id="addBtn">加入清单</button>
+            <button class="btn-light" id="resetBtn">重置当前输入</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>结果与说明</h2>
+          <p>这里会显示当前规格的单件重量、总重量、金额以及采用的计算方式。</p>
+        </div>
+        <div class="panel-body">
+          <div class="card green">
+            <div class="card-title">
+              <h3>3. 当前计算结果</h3>
+              <span class="pill" style="background:#f0fdf4;color:#15803d;border-color:#bbf7d0;">绿色区域：结果</span>
+            </div>
+
+            <div class="result-grid">
+              <div class="result-item">
+                <div class="label">单件/单根理论重量</div>
+                <div class="value" id="singleWeight">0.000 kg</div>
+                <div class="sub">按当前规格计算</div>
+              </div>
+              <div class="result-item">
+                <div class="label">总理论重量</div>
+                <div class="value" id="totalWeight">0.000 kg</div>
+                <div class="sub">数量 × 单件重量</div>
+              </div>
+              <div class="result-item">
+                <div class="label">总金额</div>
+                <div class="value" id="totalPrice">0.00 Tk</div>
+                <div class="sub">总重量 × 单价</div>
+              </div>
+              <div class="result-item">
+                <div class="label">当前规格摘要</div>
+                <div class="value" id="resultSpec" style="font-size:18px;">未计算</div>
+                <div class="sub" id="resultMeta">等待输入</div>
+              </div>
+            </div>
+
+            <div class="formula" id="formulaBox">
+              选择钢材并输入数据后，这里会显示计算依据。
+            </div>
+          </div>
+
+          <div class="card orange">
+            <div class="card-title">
+              <h3>4. 使用提示</h3>
+              <span class="pill" style="background:#fff7ed;color:#c2410c;border-color:#fed7aa;">橙色区域：说明</span>
+            </div>
+            <ul class="warn-list">
+              <li>本页面计算的是<strong>理论重量</strong>，实际过磅重量会受公差、材质、生产标准影响。</li>
+              <li>角钢、工字钢、槽钢、H 型钢使用的是<strong>常用理论单位重</strong>，并允许你手动修改。</li>
+              <li>花纹板默认按 <strong>基板重量 × 1.06</strong> 估算，你也可以自行修改系数。</li>
+              <li>钢筋可直接输入直径、长度、数量，系统按常用理论公式自动换算。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top:20px;">
+      <div class="panel-head">
+        <h2>采购清单汇总</h2>
+        <p>每次计算完成后，可以点击“加入清单”，把多个规格累加汇总，方便采购和报价。</p>
+      </div>
+      <div class="panel-body">
+        <div class="summary-bar">
+          <div class="summary-box blue-border">
+            <div class="label">清单条目数</div>
+            <div class="value" id="sumItems">0</div>
+          </div>
+          <div class="summary-box green-border">
+            <div class="label">清单总重量</div>
+            <div class="value" id="sumWeight">0.000 kg</div>
+          </div>
+          <div class="summary-box orange-border">
+            <div class="label">清单总金额</div>
+            <div class="value" id="sumAmount">0.00 Tk</div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:52px;">#</th>
+                <th>钢材类型</th>
+                <th>规格摘要</th>
+                <th>数量</th>
+                <th>单件重量</th>
+                <th>总重量</th>
+                <th>单价</th>
+                <th>金额</th>
+                <th style="width:90px;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="listBody">
+              <tr><td colspan="9" class="empty">暂无数据，先计算后点击“加入清单”。</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="actions">
+          <button class="btn-light" id="clearListBtn">清空清单</button>
+        </div>
+
+        <div class="footer-note">
+          备注：如果你要接入自己公司的真实规格表，只需要把下面脚本里的 profileTables 数据替换成你的标准数据即可。
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const materialPresets = {
+      carbonSteel: { label: "碳钢 / 普通钢", density: 7850 },
+      stainless304: { label: "不锈钢 304", density: 7930 },
+      stainless316: { label: "不锈钢 316", density: 7980 },
+      aluminum: { label: "铝", density: 2700 },
+      copper: { label: "铜", density: 8960 },
+      brass: { label: "黄铜", density: 8500 },
+      castIron: { label: "铸铁", density: 7200 },
+      custom: { label: "自定义", density: 7850 }
+    };
+
+    const profileTables = {
+      angleSteel: [
+        { label: "L25×25×3", unitWeight: 1.124, details: "等边角钢，边宽 25×25 mm，厚 3 mm" },
+        { label: "L30×30×3", unitWeight: 1.373, details: "等边角钢，边宽 30×30 mm，厚 3 mm" },
+        { label: "L40×40×4", unitWeight: 2.422, details: "等边角钢，边宽 40×40 mm，厚 4 mm" },
+        { label: "L50×50×5", unitWeight: 3.770, details: "等边角钢，边宽 50×50 mm，厚 5 mm" },
+        { label: "L63×63×5", unitWeight: 4.822, details: "等边角钢，边宽 63×63 mm，厚 5 mm" },
+        { label: "L70×70×6", unitWeight: 6.406, details: "等边角钢，边宽 70×70 mm，厚 6 mm" },
+        { label: "L75×75×6", unitWeight: 6.905, details: "等边角钢，边宽 75×75 mm，厚 6 mm" },
+        { label: "L80×80×8", unitWeight: 9.658, details: "等边角钢，边宽 80×80 mm，厚 8 mm" },
+        { label: "L90×90×8", unitWeight: 10.946, details: "等边角钢，边宽 90×90 mm，厚 8 mm" },
+        { label: "L100×100×10", unitWeight: 15.120, details: "等边角钢，边宽 100×100 mm，厚 10 mm" }
+      ],
+      iBeam: [
+        { label: "10#", unitWeight: 11.261, details: "工字钢 10#，常用理论单位重 11.261 kg/m" },
+        { label: "12.6#", unitWeight: 14.223, details: "工字钢 12.6#，常用理论单位重 14.223 kg/m" },
+        { label: "14#", unitWeight: 16.890, details: "工字钢 14#，常用理论单位重 16.890 kg/m" },
+        { label: "16#", unitWeight: 20.513, details: "工字钢 16#，常用理论单位重 20.513 kg/m" },
+        { label: "18#", unitWeight: 24.143, details: "工字钢 18#，常用理论单位重 24.143 kg/m" },
+        { label: "20a#", unitWeight: 27.929, details: "工字钢 20a#，常用理论单位重 27.929 kg/m" },
+        { label: "20b#", unitWeight: 31.069, details: "工字钢 20b#，常用理论单位重 31.069 kg/m" },
+        { label: "22a#", unitWeight: 33.070, details: "工字钢 22a#，常用理论单位重 33.070 kg/m" },
+        { label: "25a#", unitWeight: 38.105, details: "工字钢 25a#，常用理论单位重 38.105 kg/m" },
+        { label: "30a#", unitWeight: 48.084, details: "工字钢 30a#，常用理论单位重 48.084 kg/m" }
+      ],
+      channelSteel: [
+        { label: "5#", unitWeight: 5.438, details: "槽钢 5#，常用理论单位重 5.438 kg/m" },
+        { label: "6.3#", unitWeight: 6.634, details: "槽钢 6.3#，常用理论单位重 6.634 kg/m" },
+        { label: "8#", unitWeight: 8.046, details: "槽钢 8#，常用理论单位重 8.046 kg/m" },
+        { label: "10#", unitWeight: 10.007, details: "槽钢 10#，常用理论单位重 10.007 kg/m" },
+        { label: "12.6#", unitWeight: 12.318, details: "槽钢 12.6#，常用理论单位重 12.318 kg/m" },
+        { label: "14a#", unitWeight: 14.535, details: "槽钢 14a#，常用理论单位重 14.535 kg/m" },
+        { label: "16a#", unitWeight: 17.240, details: "槽钢 16a#，常用理论单位重 17.240 kg/m" },
+        { label: "18a#", unitWeight: 20.174, details: "槽钢 18a#，常用理论单位重 20.174 kg/m" },
+        { label: "20a#", unitWeight: 22.637, details: "槽钢 20a#，常用理论单位重 22.637 kg/m" },
+        { label: "25a#", unitWeight: 27.410, details: "槽钢 25a#，常用理论单位重 27.410 kg/m" }
+      ],
+      hBeam: [
+        { label: "100×100×6×8", unitWeight: 17.20, details: "H 型钢，100×100，腹板 6 mm，翼缘 8 mm" },
+        { label: "150×150×7×10", unitWeight: 31.90, details: "H 型钢，150×150，腹板 7 mm，翼缘 10 mm" },
+        { label: "200×200×8×12", unitWeight: 49.90, details: "H 型钢，200×200，腹板 8 mm，翼缘 12 mm" },
+        { label: "250×250×9×14", unitWeight: 71.80, details: "H 型钢，250×250，腹板 9 mm，翼缘 14 mm" },
+        { label: "300×300×10×15", unitWeight: 94.50, details: "H 型钢，300×300，腹板 10 mm，翼缘 15 mm" },
+        { label: "350×350×12×19", unitWeight: 137.00, details: "H 型钢，350×350，腹板 12 mm，翼缘 19 mm" }
+      ]
+    };
+
+    const steelTypes = {
+      roundBar: {
+        label: "圆钢（实心）",
+        desc: "按圆形实心截面和长度计算理论重量。",
+        fields: [
+          { id: "diameter", label: "直径 D（mm）", type: "number", step: "0.1", min: "0", value: "12" },
+          { id: "length", label: "单根长度（m）", type: "number", step: "0.001", min: "0", value: "6" },
+          { id: "qty", label: "数量（根）", type: "number", step: "1", min: "1", value: "1" }
+        ],
+        calculate(values, density){
+          const d = values.diameter / 1000;
+          const area = Math.PI * d * d / 4;
+          const singleWeight = area * values.length * density;
+          const totalWeight = singleWeight * values.qty;
+          return {
+            singleWeight, totalWeight,
+            specText: `圆钢 φ${values.diameter} × ${values.length}m`,
+            metaText: `密度 ${density} kg/m³，数量 ${values.qty} 根`,
+            formula: "圆钢重量 = π × D² ÷ 4 × 长度 × 密度（D 需换算成米）"
+          };
+        }
+      },
+      roundTube: {
+        label: "钢管 / 圆管",
+        desc: "按外径、壁厚和长度计算。",
+        fields: [
+          { id: "outerDiameter", label: "外径 OD（mm）", type: "number", step: "0.1", min: "0", value: "48.3" },
+          { id: "thickness", label: "壁厚 t（mm）", type: "number", step: "0.1", min: "0", value: "3.5" },
+          { id: "length", label: "单根长度（m）", type: "number", step: "0.001", min: "0", value: "6" },
+          { id: "qty", label: "数量（根）", type: "number", step: "1", min: "1", value: "1" }
+        ],
+        calculate(values, density){
+          const od = values.outerDiameter;
+          const t = values.thickness;
+          if (2 * t >= od) throw new Error("壁厚不能大于或等于外径的一半。");
+          const odM = od / 1000;
+          const idM = (od - 2 * t) / 1000;
+          const area = Math.PI * (odM * odM - idM * idM) / 4;
+          const singleWeight = area * values.length * density;
+          const totalWeight = singleWeight * values.qty;
+          return {
+            singleWeight, totalWeight,
+            specText: `圆管 φ${values.outerDiameter} × ${values.thickness} × ${values.length}m`,
+            metaText: `密度 ${density} kg/m³，数量 ${values.qty} 根`,
+            formula: "钢管重量 = π × (OD² - ID²) ÷ 4 × 长度 × 密度（OD、ID 换算成米）"
+          };
+        }
+      },
+      squareTube: {
+        label: "方管",
+        desc: "按边长、壁厚和长度计算。",
+        fields: [
+          { id: "side", label: "边长 B（mm）", type: "number", step: "0.1", min: "0", value: "50" },
+          { id: "thickness", label: "壁厚 t（mm）", type: "number", step: "0.1", min: "0", value: "2.5" },
+          { id: "length", label: "单根长度（m）", type: "number", step: "0.001", min: "0", value: "6" },
+          { id: "qty", label: "数量（根）", type: "number", step: "1", min: "1", value: "1" }
+        ],
+        calculate(values, density){
+          const b = values.side;
+          const t = values.thickness;
+          if (2 * t >= b) throw new Error("壁厚不能大于或等于边长的一半。");
+          const outer = Math.pow(b / 1000, 2);
+          const inner = Math.pow((b - 2 * t) / 1000, 2);
+          const area = outer - inner;
+          const singleWeight = area * values.length * density;
+          const totalWeight = singleWeight * values.qty;
+          return {
+            singleWeight, totalWeight,
+            specText: `方管 ${values.side} × ${values.side} × ${values.thickness} × ${values.length}m`,
+            metaText: `密度 ${density} kg/m³，数量 ${values.qty} 根`,
+            formula: "方管重量 = [B² - (B - 2t)²] × 长度 × 密度（尺寸需换算成米）"
+          };
+        }
+      },
+      rectTube: {
+        label: "矩形管",
+        desc: "按高、宽、壁厚和长度计算。",
+        fields: [
+          { id: "width", label: "宽 W（mm）", type: "number", step: "0.1", min: "0", value: "100" },
+          { id: "height", label: "高 H（mm）", type: "number", step: "0.1", min: "0", value: "50" },
+          { id: "thickness", label: "壁厚 t（mm）", type: "number", step: "0.1", min: "0", value: "3" },
+          { id: "length", label: "单根长度（m）", type: "number", step: "0.001", min: "0", value: "6" },
+          { id: "qty", label: "数量（根）", type: "number", step: "1", min: "1", value: "1" }
+        ],
+        calculate(values, density){
+          const w = values.width;
+          const h = values.height;
+          const t = values.thickness;
+          if (2 * t >= w || 2 * t >= h) throw new Error("壁厚不能使内孔尺寸小于等于 0。");
+          const outer = (w / 1000) * (h / 1000);
+          const inner = ((w - 2 * t) / 1000) * ((h - 2 * t) / 1000);
+          const area = outer - inner;
+          const singleWeight = area * values.length * density;
+          const totalWeight = singleWeight * values.qty;
+          return {
+            singleWeight, totalWeight,
+            specText: `矩形管 ${values.width} × ${values.height} × ${values.thickness} × ${values.length}m`,
+            metaText: `密度 ${density} kg/m³，数量 ${values.qty} 根`,
+            formula: "矩形管重量 = [W×H - (W-2t)×(H-2t)] × 长度 × 密度（尺寸需换算成米）"
+          };
+        }
+      },
+      solidSquare: {
+        label: "实心方钢",
+        desc: "按实心方形截面和长度计算。",
+        fields: [
+          { id: "side", label: "边长 B（mm）", type: "number", step: "0.1", min: "0", value: "20" },
+          { id: "length", label: "单根长度（m）", type: "number", step: "0.001", min: "0", value: "6" },
+          { id: "qty", label: "数量（根）", type: "number", step: "1", min: "1", value: "1" }
+        ],
+        calculate(values, density){
+          const area = Math.pow(values.side / 1000, 2);
+          const singleWeight = area * values.length * density;
+          const totalWeight = singleWeight * values.qty;
+          return {
+            singleWeight, totalWeight,
+            specText: `实心方钢 ${values.side} × ${values.side} × ${values.length}m`,
+            metaText: `密度 ${density} kg/m³，数量 ${values.qty} 根`,
+            formula: "实心方钢重量 = 边长² × 长度 × 密度（尺寸需换算成米）"
+          };
+        }
+      },
+      flatBar: {
+        label: "扁钢 / 扁条",
+        desc: "按宽、厚、长度计算。",
+        fields: [
+          { id: "width", label: "宽 W（mm）", type: "number", step: "0.1", min: "0", value: "50" },
+          { id: "thickness", label: "厚 t（mm）", type: "number", step: "0.1", min: "0", value: "6" },
+          { id: "length", label: "单根长度（m）", type: "number", step: "0.001", min: "0", value: "6" },
+          { id: "qty", label: "数量（根）", type: "number", step: "1", min: "1", value: "1" }
+        ],
+        calculate(values, density){
+          const area = (values.width / 1000) * (values.thickness / 1000);
+          const singleWeight = area * values.length * density;
+          const totalWeight = singleWeight * values.qty;
+          return {
+            singleWeight, totalWeight,
+            specText: `扁钢 ${values.width} × ${values.thickness} × ${values.length}m`,
+            metaText: `密度 ${density} kg/m³，数量 ${values.qty} 根`,
+            formula: "扁钢重量 = 宽 × 厚 × 长度 × 密度（尺寸需换算成米）"
+          };
+        }
+      },
+      plate: {
+        label: "钢板",
+        desc: "按长、宽、厚直接算单张重量。",
+        fields: [
+          { id: "lengthMm", label: "长度 L（mm）", type: "number", step: "1", min: "0", value: "2000" },
+          { id: "widthMm", label: "宽度 W（mm）", type: "number", step: "1", min: "0", value: "1000" },
+          { id: "thickness", label: "厚度 t（mm）", type: "number", step: "0.1", min: "0", value: "10" },
+          { id: "qty", label: "数量（张）", type: "number", step: "1", min: "1", value: "1" }
+        ],
+        calculate(values, density){
+          const volume = (values.lengthMm / 1000) * (values.widthMm / 1000) * (values.thickness / 1000);
+          const singleWeight = volume * density;
+          const totalWeight = singleWeight * values.qty;
+          return {
+            singleWeight, totalWeight,
+            specText: `钢板 ${values.lengthMm} × ${values.widthMm} × ${values.thickness} mm`,
+            metaText: `密度 ${density} kg/m³，数量 ${values.qty} 张`,
+            formula: "钢板重量 = 长 × 宽 × 厚 × 密度（尺寸需换算成米）"
+          };
+        }
+      },
+      checkerPlate: {
+        label: "花纹板",
+        desc: "按基板尺寸计算，再乘花纹附加系数。",
+        fields: [
+          { id: "lengthMm", label: "长度 L（mm）", type: "number", step: "1", min: "0", value: "2000" },
+          { id: "widthMm", label: "宽度 W（mm）", type: "number", step: "1", min: "0", value: "1000" },
+          { id: "thickness", label: "基板厚度 t（mm）", type: "number", step: "0.1", min: "0", value: "4" },
+          { id: "coefficient", label: "花纹系数", type: "number", step: "0.01", min: "1", value: "1.06" },
+          { id: "qty", label: "数量（张）", type: "number", step: "1", min: "1", value: "1" }
+        ],
+        calculate(values, density){
+          const baseVolume = (values.lengthMm / 1000) * (values.widthMm / 1000) * (values.thickness / 1000);
+          const singleWeight = baseVolume * density * values.coefficient;
+          const totalWeight = singleWeight * values.qty;
+          return {
+            singleWeight, totalWeight,
+            specText: `花纹板 ${values.lengthMm} × ${values.widthMm} × ${values.thickness} mm`,
+            metaText: `系数 ${values.coefficient}，密度 ${density} kg/m³，数量 ${values.qty} 张`,
+            formula: "花纹板重量 = 长 × 宽 × 基板厚 × 密度 × 花纹系数"
+          };
+        }
+      },
+      angleSteel: {
+        label: "角钢",
+        desc: "从常用规格表直接选取理论单位重，也可手动改单位重。",
+        fields: [
+          { id: "profileSpec", label: "常用规格", type: "profile", table: "angleSteel" },
+          { id: "unitWeight", label: "理论单位重（kg/m）", type: "number", step: "0.001", min: "0", value: "1.124" },
+          { id: "length", label: "单根长度（m）", type: "number", step: "0.001", min: "0", value: "6" },
+          { id: "qty", label: "数量（根）", type: "number", step: "1", min: "1", value: "1" }
+        ],
+        calculate(values){
+          const singleWeight = values.unitWeight * values.length;
+          const totalWeight = singleWeight * values.qty;
+          return {
+            singleWeight, totalWeight,
+            specText: `角钢 ${values.profileSpec} × ${values.length}m`,
+            metaText: `单位重 ${values.unitWeight} kg/m，数量 ${values.qty} 根`,
+            formula: "角钢重量 = 理论单位重（kg/m） × 长度 × 数量"
+          };
+        }
+      },
+      iBeam: {
+        label: "工字钢",
+        desc: "按常用国标规格表选择，自动带出理论单位重。",
+        fields: [
+          { id: "profileSpec", label: "常用规格", type: "profile", table: "iBeam" },
+          { id: "unitWeight", label: "理论单位重（kg/m）", type: "number", step: "0.001", min: "0", value: "11.261" },
+          { id: "length", label: "单根长度（m）", type: "number", step: "0.001", min: "0", value: "6" },
+          { id: "qty", label: "数量（根）", type: "number", step: "1", min: "1", value: "1" }
+        ],
+        calculate(values){
+          const singleWeight = values.unitWeight * values.length;
+          const totalWeight = singleWeight * values.qty;
+          return {
+            singleWeight, totalWeight,
+            specText: `工字钢 ${values.profileSpec} × ${values.length}m`,
+            metaText: `单位重 ${values.unitWeight} kg/m，数量 ${values.qty} 根`,
+            formula: "工字钢重量 = 理论单位重（kg/m） × 长度 × 数量"
+          };
+        }
+      },
+      channelSteel: {
+        label: "槽钢",
+        desc: "按常用规格表选择，自动带出理论单位重。",
+        fields: [
+          { id: "profileSpec", label: "常用规格", type: "profile", table: "channelSteel" },
+          { id: "unitWeight", label: "理论单位重（kg/m）", type: "number", step: "0.001", min: "0", value: "5.438" },
+          { id: "length", label: "单根长度（m）", type: "number", step: "0.001", min: "0", value: "6" },
+          { id: "qty", label: "数量（根）", type: "number", step: "1", min: "1", value: "1" }
+        ],
+        calculate(values){
+          const singleWeight = values.unitWeight * values.length;
+          const totalWeight = singleWeight * values.qty;
+          return {
+            singleWeight, totalWeight,
+            specText: `槽钢 ${values.profileSpec} × ${values.length}m`,
+            metaText: `单位重 ${values.unitWeight} kg/m，数量 ${values.qty} 根`,
+            formula: "槽钢重量 = 理论单位重（kg/m） × 长度 × 数量"
+          };
+        }
+      },
+      hBeam: {
+        label: "H 型钢",
+        desc: "按常用 H 型钢规格表选择，自动带出理论单位重。",
+        fields: [
+          { id: "profileSpec", label: "常用规格", type: "profile", table: "hBeam" },
+          { id: "unitWeight", label: "理论单位重（kg/m）", type: "number", step: "0.001", min: "0", value: "17.2" },
+          { id: "length", label: "单根长度（m）", type: "number", step: "0.001", min: "0", value: "6" },
+          { id: "qty", label: "数量（根）", type: "number", step: "1", min: "1", value: "1" }
+        ],
+        calculate(values){
+          const singleWeight = values.unitWeight * values.length;
+          const totalWeight = singleWeight * values.qty;
+          return {
+            singleWeight, totalWeight,
+            specText: `H 型钢 ${values.profileSpec} × ${values.length}m`,
+            metaText: `单位重 ${values.unitWeight} kg/m，数量 ${values.qty} 根`,
+            formula: "H 型钢重量 = 理论单位重（kg/m） × 长度 × 数量"
+          };
+        }
+      },
+      rebar: {
+        label: "钢筋",
+        desc: "按钢筋直径计算理论重量，常用公式 d² / 162（kg/m）。",
+        fields: [
+          { id: "grade", label: "钢筋级别", type: "select", options: [
+            { value: "HRB335", text: "HRB335" },
+            { value: "HRB400", text: "HRB400" },
+            { value: "HRB500", text: "HRB500" }
+          ], value: "HRB400" },
+          { id: "diameter", label: "公称直径 d（mm）", type: "number", step: "0.1", min: "0", value: "12" },
+          { id: "length", label: "单根长度（m）", type: "number", step: "0.001", min: "0", value: "12" },
+          { id: "qty", label: "数量（根）", type: "number", step: "1", min: "1", value: "1" }
+        ],
+        calculate(values){
+          const unitWeight = (values.diameter * values.diameter) / 162;
+          const singleWeight = unitWeight * values.length;
+          const totalWeight = singleWeight * values.qty;
+          return {
+            singleWeight, totalWeight,
+            specText: `${values.grade} 钢筋 φ${values.diameter} × ${values.length}m`,
+            metaText: `单位重 ${unitWeight.toFixed(3)} kg/m，数量 ${values.qty} 根`,
+            formula: "钢筋理论单位重 ≈ d² / 162（kg/m）；总重量 = 单位重 × 长度 × 数量"
+          };
+        }
+      }
+    };
+
+    const steelTypeEl = document.getElementById("steelType");
+    const materialPresetEl = document.getElementById("materialPreset");
+    const densityEl = document.getElementById("density");
+    const dynamicFormEl = document.getElementById("dynamicForm");
+    const listBodyEl = document.getElementById("listBody");
+
+    const singleWeightEl = document.getElementById("singleWeight");
+    const totalWeightEl = document.getElementById("totalWeight");
+    const totalPriceEl = document.getElementById("totalPrice");
+    const resultSpecEl = document.getElementById("resultSpec");
+    const resultMetaEl = document.getElementById("resultMeta");
+    const formulaBoxEl = document.getElementById("formulaBox");
+
+    let currentResult = null;
+    let items = [];
+
+    function numberFormat(num, digits = 3){
+      return Number(num || 0).toLocaleString("en-US", {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      });
+    }
+
+    function moneyFormat(num){
+      return Number(num || 0).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function initSelectors(){
+      Object.entries(steelTypes).forEach(([key, item]) => {
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = item.label;
+        steelTypeEl.appendChild(opt);
+      });
+
+      Object.entries(materialPresets).forEach(([key, item]) => {
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = `${item.label}（${item.density} kg/m³）`;
+        materialPresetEl.appendChild(opt);
+      });
+
+      steelTypeEl.value = "roundBar";
+      materialPresetEl.value = "carbonSteel";
+      densityEl.value = materialPresets.carbonSteel.density;
+    }
+
+    function renderField(field){
+      if (field.type === "profile"){
+        const table = profileTables[field.table] || [];
+        const options = table.map((row, idx) =>
+          `<option value="${escapeHtml(row.label)}" data-unit="${row.unitWeight}" data-details="${escapeHtml(row.details)}" ${idx === 0 ? "selected" : ""}>${escapeHtml(row.label)}（${row.unitWeight} kg/m）</option>`
+        ).join("");
+
+        return `
+          <div class="field">
+            <label for="${field.id}">${field.label}</label>
+            <select id="${field.id}" data-field-type="profile" data-table="${field.table}">
+              ${options}
+            </select>
+            <small>选规格后会自动带出理论单位重，下面仍可手动修改。</small>
+          </div>
+        `;
+      }
+
+      if (field.type === "select"){
+        const options = (field.options || []).map(opt =>
+          `<option value="${escapeHtml(opt.value)}" ${String(field.value) === String(opt.value) ? "selected" : ""}>${escapeHtml(opt.text)}</option>`
+        ).join("");
+        return `
+          <div class="field">
+            <label for="${field.id}">${field.label}</label>
+            <select id="${field.id}">
+              ${options}
+            </select>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="field">
+          <label for="${field.id}">${field.label}</label>
+          <input
+            id="${field.id}"
+            type="${field.type || "number"}"
+            step="${field.step || "any"}"
+            min="${field.min || ""}"
+            value="${field.value ?? ""}"
+          />
+        </div>
+      `;
+    }
+
+    function renderDynamicForm(){
+      const typeKey = steelTypeEl.value;
+      const type = steelTypes[typeKey];
+      dynamicFormEl.innerHTML = `
+        <div class="inline-note">
+          <strong>${type.label}</strong>：${type.desc}
+        </div>
+        <div class="grid" style="margin-top:14px;">
+          ${type.fields.map(renderField).join("")}
+        </div>
+        <div class="inline-note" id="profileDetailsBox">
+          当前类型说明：${type.desc}
+        </div>
+      `;
+
+      const profileSelect = dynamicFormEl.querySelector('[data-field-type="profile"]');
+      if (profileSelect){
+        profileSelect.addEventListener("change", syncProfileUnitWeight);
+        syncProfileUnitWeight();
+      } else {
+        const detailBox = document.getElementById("profileDetailsBox");
+        if (detailBox){
+          detailBox.innerHTML = `当前类型说明：${type.desc}`;
+        }
+      }
+    }
+
+    function syncProfileUnitWeight(){
+      const type = steelTypes[steelTypeEl.value];
+      const profileSelect = document.getElementById("profileSpec");
+      const unitWeightInput = document.getElementById("unitWeight");
+      const detailBox = document.getElementById("profileDetailsBox");
+      if (!profileSelect || !unitWeightInput) return;
+
+      const selected = profileSelect.options[profileSelect.selectedIndex];
+      const unit = selected.dataset.unit;
+      const details = selected.dataset.details || type.desc;
+
+      unitWeightInput.value = unit;
+      if (detailBox){
+        detailBox.innerHTML = `<strong>规格说明：</strong>${details}`;
+      }
+    }
+
+    function collectValues(){
+      const type = steelTypes[steelTypeEl.value];
+      const values = {};
+      type.fields.forEach(field => {
+        const el = document.getElementById(field.id);
+        if (!el) return;
+        if (field.type === "select" || field.type === "profile") {
+          values[field.id] = el.value;
+        } else {
+          values[field.id] = Number(el.value);
+        }
+      });
+      return values;
+    }
+
+    function validateValues(values){
+      for (const [key, val] of Object.entries(values)){
+        if (typeof val === "number" && (!Number.isFinite(val) || val < 0)){
+          throw new Error(`输入项 ${key} 无效，请检查。`);
+        }
+      }
+    }
+
+    function doCalculate(){
+      const typeKey = steelTypeEl.value;
+      const type = steelTypes[typeKey];
+      const density = Number(densityEl.value);
+      const pricePerKg = Number(document.getElementById("pricePerKg").value || 0);
+      if (!Number.isFinite(density) || density <= 0){
+        throw new Error("密度必须大于 0。");
+      }
+      if (!Number.isFinite(pricePerKg) || pricePerKg < 0){
+        throw new Error("单价不能小于 0。");
+      }
+
+      const values = collectValues();
+      validateValues(values);
+
+      const result = type.calculate(values, density);
+      const totalPrice = result.totalWeight * pricePerKg;
+
+      currentResult = {
+        typeKey,
+        typeLabel: type.label,
+        specText: result.specText,
+        metaText: result.metaText,
+        formula: result.formula,
+        values,
+        density,
+        pricePerKg,
+        singleWeight: result.singleWeight,
+        totalWeight: result.totalWeight,
+        totalPrice
+      };
+
+      singleWeightEl.textContent = `${numberFormat(result.singleWeight)} kg`;
+      totalWeightEl.textContent = `${numberFormat(result.totalWeight)} kg`;
+      totalPriceEl.textContent = `${moneyFormat(totalPrice)} Tk`;
+      resultSpecEl.textContent = result.specText;
+      resultMetaEl.textContent = result.metaText;
+      formulaBoxEl.innerHTML = `
+        <strong>计算方式：</strong>${result.formula}<br />
+        <strong>当前说明：</strong>${result.metaText}<br />
+        <strong>理论金额：</strong> ${moneyFormat(totalPrice)} Tk（单价 ${moneyFormat(pricePerKg)} Tk/kg）
+      `;
+
+      return currentResult;
+    }
+
+    function renderList(){
+      if (!items.length){
+        listBodyEl.innerHTML = `<tr><td colspan="9" class="empty">暂无数据，先计算后点击“加入清单”。</td></tr>`;
+      } else {
+        listBodyEl.innerHTML = items.map((item, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${escapeHtml(item.typeLabel)}</td>
+            <td>${escapeHtml(item.specText)}<br><span style="color:#6b7280;">${escapeHtml(item.metaText)}</span></td>
+            <td>${item.qtyDisplay}</td>
+            <td>${numberFormat(item.singleWeight)} kg</td>
+            <td>${numberFormat(item.totalWeight)} kg</td>
+            <td>${moneyFormat(item.pricePerKg)} Tk/kg</td>
+            <td>${moneyFormat(item.totalPrice)} Tk</td>
+            <td><button class="delete-btn" onclick="removeItem(${index})">删除</button></td>
+          </tr>
+        `).join("");
+      }
+
+      const sumWeight = items.reduce((acc, cur) => acc + cur.totalWeight, 0);
+      const sumAmount = items.reduce((acc, cur) => acc + cur.totalPrice, 0);
+
+      document.getElementById("sumItems").textContent = items.length;
+      document.getElementById("sumWeight").textContent = `${numberFormat(sumWeight)} kg`;
+      document.getElementById("sumAmount").textContent = `${moneyFormat(sumAmount)} Tk`;
+    }
+
+    function addToList(){
+      const result = currentResult || doCalculate();
+      const qtyField = document.getElementById("qty");
+      items.push({
+        ...result,
+        qtyDisplay: qtyField ? qtyField.value : "1"
+      });
+      renderList();
+    }
+
+    function resetCurrent(){
+      renderDynamicForm();
+      materialPresetEl.value = "carbonSteel";
+      densityEl.value = materialPresets.carbonSteel.density;
+      document.getElementById("pricePerKg").value = 0;
+      currentResult = null;
+
+      singleWeightEl.textContent = "0.000 kg";
+      totalWeightEl.textContent = "0.000 kg";
+      totalPriceEl.textContent = "0.00 Tk";
+      resultSpecEl.textContent = "未计算";
+      resultMetaEl.textContent = "等待输入";
+      formulaBoxEl.textContent = "选择钢材并输入数据后，这里会显示计算依据。";
+    }
+
+    function removeItem(index){
+      items.splice(index, 1);
+      renderList();
+    }
+
+    function clearList(){
+      items = [];
+      renderList();
+    }
+
+    window.removeItem = removeItem;
+
+    materialPresetEl.addEventListener("change", () => {
+      const preset = materialPresets[materialPresetEl.value];
+      if (preset){
+        densityEl.value = preset.density;
+      }
+    });
+
+    densityEl.addEventListener("input", () => {
+      if (materialPresetEl.value !== "custom"){
+        materialPresetEl.value = "custom";
+      }
+    });
+
+    steelTypeEl.addEventListener("change", renderDynamicForm);
+
+    document.getElementById("calcBtn").addEventListener("click", () => {
+      try{
+        doCalculate();
+      } catch (err){
+        alert(err.message || "计算失败，请检查输入。");
+      }
+    });
+
+    document.getElementById("addBtn").addEventListener("click", () => {
+      try{
+        addToList();
+      } catch (err){
+        alert(err.message || "加入清单失败，请检查输入。");
+      }
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", resetCurrent);
+    document.getElementById("clearListBtn").addEventListener("click", clearList);
+
+    initSelectors();
+    renderDynamicForm();
+    renderList();
+  </script>
+</body>
+</html>
