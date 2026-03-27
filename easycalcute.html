@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>普通计算器</title>
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #f5efe6 0%, #eef4fb 100%);
+      --panel: rgba(255, 255, 255, 0.88);
+      --panel-strong: rgba(255, 255, 255, 0.96);
+      --border: rgba(22, 35, 56, 0.12);
+      --text: #172033;
+      --muted: #64748b;
+      --number: #f7f9fc;
+      --number-hover: #edf2f8;
+      --operator: #e8f3ee;
+      --operator-hover: #d7eadf;
+      --utility: #fbefe9;
+      --utility-hover: #f5dfd5;
+      --equal: #1f6f8b;
+      --equal-hover: #175869;
+      --shadow: 0 24px 48px rgba(23, 32, 51, 0.14);
+      --history-tag: #dceef5;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: min(1080px, 100%);
+      display: grid;
+      grid-template-columns: minmax(320px, 430px) minmax(300px, 1fr);
+      gap: 24px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .calculator {
+      padding: 22px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 1.7rem;
+    }
+
+    .topbar p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    .tag {
+      padding: 8px 14px;
+      background: var(--history-tag);
+      color: #18556c;
+      border-radius: 999px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .screen {
+      background: var(--panel-strong);
+      border: 1px solid rgba(31, 111, 139, 0.12);
+      border-radius: 24px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .expression {
+      min-height: 26px;
+      color: var(--muted);
+      text-align: right;
+      font-size: 1rem;
+      word-break: break-all;
+    }
+
+    .result {
+      margin-top: 10px;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      text-align: right;
+      font-weight: 700;
+      word-break: break-all;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      border: 0;
+      border-radius: 14px;
+      background: var(--panel-strong);
+      color: var(--muted);
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 0.94rem;
+      transition: background 0.16s ease, transform 0.16s ease, color 0.16s ease;
+    }
+
+    .action-btn:hover {
+      background: #ffffff;
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .key {
+      border: 0;
+      min-height: 68px;
+      border-radius: 20px;
+      font-size: 1.18rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text);
+      background: var(--number);
+      box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.04);
+      transition: transform 0.16s ease, background 0.16s ease;
+    }
+
+    .key:hover {
+      transform: translateY(-2px);
+      background: var(--number-hover);
+    }
+
+    .key.utility {
+      background: var(--utility);
+    }
+
+    .key.utility:hover {
+      background: var(--utility-hover);
+    }
+
+    .key.operator {
+      background: var(--operator);
+    }
+
+    .key.operator:hover {
+      background: var(--operator-hover);
+    }
+
+    .key.equal {
+      background: var(--equal);
+      color: #fff;
+    }
+
+    .key.equal:hover {
+      background: var(--equal-hover);
+    }
+
+    .span-2 {
+      grid-column: span 2;
+    }
+
+    .span-full {
+      grid-column: 1 / -1;
+    }
+
+    .history {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      min-height: 700px;
+    }
+
+    .history h2 {
+      margin: 0;
+      font-size: 1.22rem;
+    }
+
+    .history p {
+      margin: 6px 0 16px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.94rem;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .history-empty {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed rgba(22, 35, 56, 0.14);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.45);
+      min-height: 220px;
+      line-height: 1.7;
+      padding: 20px;
+    }
+
+    .history-item {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(31, 111, 139, 0.1);
+      border-radius: 20px;
+      padding: 14px 16px;
+    }
+
+    .history-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      margin-bottom: 10px;
+    }
+
+    .history-expression {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      word-break: break-all;
+    }
+
+    .history-result {
+      font-size: 1.18rem;
+      font-weight: 700;
+      word-break: break-all;
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .history-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 12px;
+      cursor: pointer;
+      background: #e9f2f9;
+      color: #225a79;
+      font-size: 0.88rem;
+    }
+
+    .history-btn:hover {
+      background: #d8eaf7;
+    }
+
+    .converters {
+      grid-column: 1 / -1;
+      padding: 22px;
+    }
+
+    .converters h2 {
+      margin: 0;
+      font-size: 1.22rem;
+    }
+
+    .converters p {
+      margin: 6px 0 18px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.94rem;
+    }
+
+    .converter-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .converter-card {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(31, 111, 139, 0.1);
+      border-radius: 22px;
+      padding: 18px;
+    }
+
+    .converter-card h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .converter-card label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .converter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .converter-field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .converter-card input {
+      width: 100%;
+      border: 1px solid rgba(22, 35, 56, 0.14);
+      background: #fff;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 1rem;
+      color: var(--text);
+      outline: none;
+    }
+
+    .converter-card input:focus {
+      border-color: rgba(31, 111, 139, 0.45);
+      box-shadow: 0 0 0 4px rgba(31, 111, 139, 0.08);
+    }
+
+    .converter-result {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 16px;
+      background: #f6fafc;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .converter-result strong {
+      display: block;
+      font-size: 1.2rem;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 920px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .history {
+        min-height: auto;
+      }
+
+      .converter-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .converter-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 14px;
+      }
+
+      .calculator,
+      .history {
+        padding: 16px;
+      }
+
+      .key {
+        min-height: 60px;
+        border-radius: 16px;
+      }
+
+      .topbar {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="panel calculator" aria-label="普通计算器">
+      <div class="topbar">
+        <div>
+          <h1>普通计算器</h1>
+          <p>标准四则运算，输入清晰，历史记录自动保存，适合日常直接使用。</p>
+        </div>
+        <div class="tag" id="historyCount">0 条历史</div>
+      </div>
+
+      <div class="screen" aria-live="polite">
+        <div class="expression" id="expression">0</div>
+        <div class="result" id="result">0</div>
+      </div>
+
+      <div class="actions">
+        <button class="action-btn" id="copyResultBtn" type="button">复制结果</button>
+        <button class="action-btn" id="clearHistoryBtn" type="button">清空历史</button>
+      </div>
+
+      <div class="keys" id="keys">
+        <button class="key utility" data-action="clear" type="button">AC</button>
+        <button class="key utility" data-action="backspace" type="button">⌫</button>
+        <button class="key operator" data-value="(" type="button">(</button>
+        <button class="key operator" data-value=")" type="button">)</button>
+        <button class="key operator" data-value="/" type="button">÷</button>
+
+        <button class="key" data-value="7" type="button">7</button>
+        <button class="key" data-value="8" type="button">8</button>
+        <button class="key" data-value="9" type="button">9</button>
+        <button class="key operator" data-value="%" type="button">%</button>
+        <button class="key operator" data-value="*" type="button">×</button>
+
+        <button class="key" data-value="4" type="button">4</button>
+        <button class="key" data-value="5" type="button">5</button>
+        <button class="key" data-value="6" type="button">6</button>
+        <button class="key operator" data-value="-" type="button">-</button>
+        <button class="key operator" data-value="+" type="button">+</button>
+
+        <button class="key" data-value="1" type="button">1</button>
+        <button class="key" data-value="2" type="button">2</button>
+        <button class="key" data-value="3" type="button">3</button>
+        <button class="key span-2" data-value="0" type="button">0</button>
+
+        <button class="key" data-value="." type="button">.</button>
+        <button class="key equal span-full" data-action="calculate" type="button">=</button>
+      </div>
+    </section>
+
+    <aside class="panel history" aria-label="输入历史">
+      <div>
+        <h2>输入历史</h2>
+        <p>每次按下等号后自动记录表达式、结果和时间。点击历史项可以继续使用。</p>
+      </div>
+      <div class="history-list" id="historyList"></div>
+      <div class="history-empty" id="historyEmpty">
+        还没有历史记录。<br>
+        先完成一次计算，这里就会显示你的输入历史。
+      </div>
+    </aside>
+
+    <section class="panel converters" aria-label="单位换算">
+      <div>
+        <h2>单位换算</h2>
+        <p>页面底部提供两个常用换算区域，输入后会自动换算。</p>
+      </div>
+      <div class="converter-grid">
+        <article class="converter-card">
+          <h3>米转 ft</h3>
+          <div class="converter-row">
+            <div class="converter-field">
+              <label for="meterInput">米（m）</label>
+              <input id="meterInput" type="number" inputmode="decimal" step="any" placeholder="例如 1.75">
+            </div>
+            <div class="converter-field">
+              <label for="feetInput">英尺（ft）</label>
+              <input id="feetInput" type="number" inputmode="decimal" step="any" placeholder="例如 5.741">
+            </div>
+          </div>
+          <div class="converter-result" id="meterResult">
+            长度换算
+            <strong>0 m = 0 ft</strong>
+          </div>
+        </article>
+
+        <article class="converter-card">
+          <h3>平方米转平方 ft</h3>
+          <div class="converter-row">
+            <div class="converter-field">
+              <label for="squareMeterInput">平方米（m²）</label>
+              <input id="squareMeterInput" type="number" inputmode="decimal" step="any" placeholder="例如 80">
+            </div>
+            <div class="converter-field">
+              <label for="squareFeetInput">平方英尺（sq ft）</label>
+              <input id="squareFeetInput" type="number" inputmode="decimal" step="any" placeholder="例如 861.113">
+            </div>
+          </div>
+          <div class="converter-result" id="squareMeterResult">
+            面积换算
+            <strong>0 m² = 0 sq ft</strong>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "normal-calculator-history-v1";
+    const MAX_HISTORY = 50;
+
+    const expressionEl = document.getElementById("expression");
+    const resultEl = document.getElementById("result");
+    const historyListEl = document.getElementById("historyList");
+    const historyEmptyEl = document.getElementById("historyEmpty");
+    const historyCountEl = document.getElementById("historyCount");
+    const copyResultBtn = document.getElementById("copyResultBtn");
+    const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+    const keysEl = document.getElementById("keys");
+    const meterInput = document.getElementById("meterInput");
+    const feetInput = document.getElementById("feetInput");
+    const squareMeterInput = document.getElementById("squareMeterInput");
+    const squareFeetInput = document.getElementById("squareFeetInput");
+    const meterResultEl = document.getElementById("meterResult");
+    const squareMeterResultEl = document.getElementById("squareMeterResult");
+
+    let expression = "";
+    let lastActionWasEqual = false;
+    let history = loadHistory();
+
+    function loadHistory() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveHistory() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    }
+
+    function isOperator(char) {
+      return ["+", "-", "*", "/", "%"].includes(char);
+    }
+
+    function getCurrentNumber() {
+      const parts = expression.split(/[+\-*/%]/);
+      return parts[parts.length - 1] || "";
+    }
+
+    function appendValue(value) {
+      if (lastActionWasEqual && /[0-9.]/.test(value)) {
+        expression = "";
+      }
+
+      if (value === "(") {
+        if (expression && /[0-9.)]/.test(expression.slice(-1))) {
+          expression += "*(";
+        } else {
+          expression += "(";
+        }
+        lastActionWasEqual = false;
+        updateDisplay();
+        return;
+      }
+
+      if (value === ")") {
+        const openCount = (expression.match(/\(/g) || []).length;
+        const closeCount = (expression.match(/\)/g) || []).length;
+        if (openCount > closeCount && expression && !isOperator(expression.slice(-1)) && expression.slice(-1) !== "(") {
+          expression += ")";
+          lastActionWasEqual = false;
+          updateDisplay();
+        }
+        return;
+      }
+
+      if (isOperator(value)) {
+        if (!expression) {
+          if (value === "-") {
+            expression = "-";
+          }
+          updateDisplay();
+          lastActionWasEqual = false;
+          return;
+        }
+
+        const lastChar = expression.slice(-1);
+        if (isOperator(lastChar)) {
+          expression = expression.slice(0, -1) + value;
+        } else {
+          expression += value;
+        }
+        lastActionWasEqual = false;
+        updateDisplay();
+        return;
+      }
+
+      if (value === ".") {
+        if (getCurrentNumber().includes(".")) {
+          return;
+        }
+        if (!expression || isOperator(expression.slice(-1))) {
+          expression += "0";
+        }
+      }
+
+      expression += value;
+      lastActionWasEqual = false;
+      updateDisplay();
+    }
+
+    function clearAll() {
+      expression = "";
+      lastActionWasEqual = false;
+      updateDisplay();
+    }
+
+    function backspace() {
+      expression = expression.slice(0, -1);
+      lastActionWasEqual = false;
+      updateDisplay();
+    }
+
+    function formatNumber(value) {
+      const rounded = Number.parseFloat(Number(value).toFixed(12));
+      return String(rounded);
+    }
+
+    function evaluateExpression(input) {
+      if (!input) {
+        return { success: false, value: "0" };
+      }
+
+      if (!/^[0-9+\-*/%.()\s]+$/.test(input)) {
+        return { success: false, value: "表达式错误" };
+      }
+
+      try {
+        const result = Function(`"use strict"; return (${input})`)();
+        if (typeof result !== "number" || !Number.isFinite(result)) {
+          return { success: false, value: "无法计算" };
+        }
+        return { success: true, value: formatNumber(result) };
+      } catch (error) {
+        return { success: false, value: "表达式错误" };
+      }
+    }
+
+    function updateDisplay() {
+      expressionEl.textContent = expression || "0";
+      if (!expression) {
+        resultEl.textContent = "0";
+        return;
+      }
+
+      const evaluated = evaluateExpression(expression);
+      resultEl.textContent = evaluated.success ? evaluated.value : "0";
+    }
+
+    function addHistoryItem(expressionText, resultText) {
+      history.unshift({
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        expression: expressionText,
+        result: resultText,
+        time: new Date().toLocaleString("zh-CN", { hour12: false })
+      });
+      history = history.slice(0, MAX_HISTORY);
+      saveHistory();
+      renderHistory();
+    }
+
+    function calculate() {
+      if (!expression) {
+        return;
+      }
+
+      const evaluated = evaluateExpression(expression);
+      if (!evaluated.success) {
+        resultEl.textContent = evaluated.value;
+        return;
+      }
+
+      addHistoryItem(expression, evaluated.value);
+      expression = evaluated.value;
+      lastActionWasEqual = true;
+      updateDisplay();
+    }
+
+    function renderHistory() {
+      historyListEl.innerHTML = "";
+      historyCountEl.textContent = `${history.length} 条历史`;
+      historyEmptyEl.style.display = history.length ? "none" : "grid";
+
+      history.forEach((item, index) => {
+        const card = document.createElement("article");
+        card.className = "history-item";
+        card.innerHTML = `
+          <div class="history-meta">
+            <span>${escapeHtml(item.time)}</span>
+            <span>#${history.length - index}</span>
+          </div>
+          <div class="history-expression">${escapeHtml(item.expression)}</div>
+          <div class="history-result">= ${escapeHtml(item.result)}</div>
+          <div class="history-actions">
+            <button class="history-btn" type="button" data-expression="${escapeAttribute(item.expression)}">继续计算</button>
+            <button class="history-btn" type="button" data-result="${escapeAttribute(item.result)}">复制结果</button>
+          </div>
+        `;
+        historyListEl.appendChild(card);
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function escapeAttribute(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(String(text));
+        copyResultBtn.textContent = "已复制";
+      } catch (error) {
+        copyResultBtn.textContent = "复制失败";
+      }
+
+      setTimeout(() => {
+        copyResultBtn.textContent = "复制结果";
+      }, 1200);
+    }
+
+    keysEl.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) {
+        return;
+      }
+
+      const action = button.dataset.action;
+      const value = button.dataset.value;
+
+      if (value) {
+        appendValue(value);
+        return;
+      }
+
+      if (action === "clear") {
+        clearAll();
+      } else if (action === "backspace") {
+        backspace();
+      } else if (action === "calculate") {
+        calculate();
+      }
+    });
+
+    historyListEl.addEventListener("click", async (event) => {
+      const expressionButton = event.target.closest("[data-expression]");
+      const resultButton = event.target.closest("[data-result]");
+
+      if (expressionButton) {
+        expression = expressionButton.dataset.expression;
+        lastActionWasEqual = false;
+        updateDisplay();
+      }
+
+      if (resultButton) {
+        await copyText(resultButton.dataset.result);
+      }
+    });
+
+    copyResultBtn.addEventListener("click", async () => {
+      await copyText(resultEl.textContent);
+    });
+
+    clearHistoryBtn.addEventListener("click", () => {
+      history = [];
+      saveHistory();
+      renderHistory();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if ("0123456789+-*/%.()".includes(event.key)) {
+        appendValue(event.key);
+        return;
+      }
+
+      if (event.key === "Enter" || event.key === "=") {
+        event.preventDefault();
+        calculate();
+        return;
+      }
+
+      if (event.key === "Backspace") {
+        backspace();
+        return;
+      }
+
+      if (event.key === "Escape") {
+        clearAll();
+      }
+    });
+
+    function formatConvertedNumber(value) {
+      return Number.parseFloat(value.toFixed(6)).toString();
+    }
+
+    function clearLengthResult() {
+      meterResultEl.innerHTML = "长度换算<strong>0 m = 0 ft</strong>";
+    }
+
+    function clearAreaResult() {
+      squareMeterResultEl.innerHTML = "面积换算<strong>0 m² = 0 sq ft</strong>";
+    }
+
+    function updateLengthFromMeters() {
+      const meters = Number.parseFloat(meterInput.value);
+      if (!Number.isFinite(meters)) {
+        feetInput.value = "";
+        clearLengthResult();
+        return;
+      }
+
+      const feet = meters * 3.280839895;
+      feetInput.value = formatConvertedNumber(feet);
+      meterResultEl.innerHTML = `长度换算<strong>${formatConvertedNumber(meters)} m = ${formatConvertedNumber(feet)} ft</strong>`;
+    }
+
+    function updateLengthFromFeet() {
+      const feet = Number.parseFloat(feetInput.value);
+      if (!Number.isFinite(feet)) {
+        meterInput.value = "";
+        clearLengthResult();
+        return;
+      }
+
+      const meters = feet / 3.280839895;
+      meterInput.value = formatConvertedNumber(meters);
+      meterResultEl.innerHTML = `长度换算<strong>${formatConvertedNumber(meters)} m = ${formatConvertedNumber(feet)} ft</strong>`;
+    }
+
+    function updateAreaFromSquareMeters() {
+      const squareMeters = Number.parseFloat(squareMeterInput.value);
+      if (!Number.isFinite(squareMeters)) {
+        squareFeetInput.value = "";
+        clearAreaResult();
+        return;
+      }
+
+      const squareFeet = squareMeters * 10.763910417;
+      squareFeetInput.value = formatConvertedNumber(squareFeet);
+      squareMeterResultEl.innerHTML = `面积换算<strong>${formatConvertedNumber(squareMeters)} m² = ${formatConvertedNumber(squareFeet)} sq ft</strong>`;
+    }
+
+    function updateAreaFromSquareFeet() {
+      const squareFeet = Number.parseFloat(squareFeetInput.value);
+      if (!Number.isFinite(squareFeet)) {
+        squareMeterInput.value = "";
+        clearAreaResult();
+        return;
+      }
+
+      const squareMeters = squareFeet / 10.763910417;
+      squareMeterInput.value = formatConvertedNumber(squareMeters);
+      squareMeterResultEl.innerHTML = `面积换算<strong>${formatConvertedNumber(squareMeters)} m² = ${formatConvertedNumber(squareFeet)} sq ft</strong>`;
+    }
+
+    meterInput.addEventListener("input", updateLengthFromMeters);
+    feetInput.addEventListener("input", updateLengthFromFeet);
+    squareMeterInput.addEventListener("input", updateAreaFromSquareMeters);
+    squareFeetInput.addEventListener("input", updateAreaFromSquareFeet);
+
+    renderHistory();
+    updateDisplay();
+    clearLengthResult();
+    clearAreaResult();
+  </script>
+</body>
+</html>
