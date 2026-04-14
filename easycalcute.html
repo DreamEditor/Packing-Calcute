@@ -192,8 +192,8 @@ hr{border:0;border-top:1px solid var(--border);margin:10px 0;}
             <div class="field">
               <label>材料 / Material</label>
               <select id="l2m">
-                <option value="PET" selected>PET</option>
-                <option value="MPET">MPET</option>
+                <option value="PET">PET</option>
+                <option value="MPET" selected>MPET</option>
                 <option value="BOPP">BOPP</option>
                 <option value="CPP">CPP</option>
                 <option value="NY">NY / Nylon</option>
@@ -473,7 +473,7 @@ function reset(){
   $('price').value='510.0000';
   $('H').value='150'; $('W').value='200'; $('bagType').value='roll';
   $('l1m').value='PET';  $('l1t').value='12'; $('l1d').value='1.390';
-  $('l2m').value='PET';  $('l2t').value='12'; $('l2d').value='1.390';
+  $('l2m').value='MPET'; $('l2t').value='12'; $('l2d').value='1.390';
   $('l3m').value='LDPE'; $('l3t').value='30'; $('l3d').value='0.921';
   $('inkG').value='2.0000'; $('inkD').value='1.040';
   $('a1G').value='1.5000';  $('a1D').value='1.140';
@@ -495,4 +495,3 @@ calc();
 </script>
 </body>
 </html>
-
