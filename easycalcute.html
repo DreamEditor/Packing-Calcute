@@ -1,900 +1,498 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>普通计算器</title>
-  <style>
-    :root {
-      --bg: linear-gradient(135deg, #f5efe6 0%, #eef4fb 100%);
-      --panel: rgba(255, 255, 255, 0.88);
-      --panel-strong: rgba(255, 255, 255, 0.96);
-      --border: rgba(22, 35, 56, 0.12);
-      --text: #172033;
-      --muted: #64748b;
-      --number: #f7f9fc;
-      --number-hover: #edf2f8;
-      --operator: #e8f3ee;
-      --operator-hover: #d7eadf;
-      --utility: #fbefe9;
-      --utility-hover: #f5dfd5;
-      --equal: #1f6f8b;
-      --equal-hover: #175869;
-      --shadow: 0 24px 48px rgba(23, 32, 51, 0.14);
-      --history-tag: #dceef5;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>包装袋成本计算器 / Bag Cost Calculator</title>
+<style>
+:root{
+  --accent:#1a6b8a;--accent-lt:#e8f3f8;--border:#dde3ec;
+  --bg:#f2f5fa;--card:#fff;--text:#1a2033;--muted:#64748b;
+  --red:#c0392b;--red-bg:#fdecea;--r:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;}
+.wrap{max-width:980px;margin:0 auto;padding:14px;}
 
-    * {
-      box-sizing: border-box;
-    }
+/* price bar */
+.price-bar{
+  background:var(--accent);color:#fff;border-radius:var(--r);
+  padding:12px 18px;display:flex;align-items:center;gap:12px;
+  flex-wrap:wrap;margin-bottom:14px;
+}
+.price-bar label{font-weight:700;font-size:.95rem;white-space:nowrap;}
+.price-bar input{
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.45);
+  color:#fff;border-radius:8px;padding:7px 12px;font-size:1rem;
+  font-weight:700;width:180px;outline:none;font-family:inherit;
+}
+.price-bar input:focus{border-color:#fff;}
+.price-bar span{font-size:.82rem;opacity:.85;}
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-      color: var(--text);
-      background: var(--bg);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 24px;
-    }
+/* layout */
+.grid{display:grid;grid-template-columns:440px 1fr;gap:14px;align-items:start;}
+@media(max-width:700px){.grid{grid-template-columns:1fr;}}
 
-    .app {
-      width: min(1080px, 100%);
-      display: grid;
-      grid-template-columns: minmax(320px, 430px) minmax(300px, 1fr);
-      gap: 24px;
-    }
+/* sticky results on desktop */
+.sticky{position:sticky;top:14px;}
+@media(max-width:700px){.sticky{position:static;}}
 
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 28px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-    }
+/* card */
+.card{background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.card-h{background:var(--accent-lt);padding:8px 14px;
+  font-weight:700;font-size:.82rem;color:var(--accent);
+  border-bottom:1px solid var(--border);}
+.card-b{padding:12px 14px;}
 
-    .calculator {
-      padding: 22px;
-    }
+/* fields */
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.row:last-child{margin-bottom:0;}
+.row.single{grid-template-columns:1fr;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:.76rem;font-weight:600;color:var(--muted);}
+.field input,.field select{
+  border:1px solid var(--border);border-radius:8px;padding:8px 10px;
+  font-size:.9rem;color:var(--text);outline:none;font-family:inherit;background:#fff;
+}
+.field input:focus,.field select:focus{
+  border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,107,138,.1);}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+input[type=number]{-moz-appearance:textfield;}
+.thk-tag{font-size:.72rem;color:var(--muted);margin-top:6px;}
+.thk-tag strong{color:var(--accent);}
 
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: flex-start;
-      margin-bottom: 18px;
-    }
+/* buttons */
+.btn-row{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-top:4px;}
+button{border:0;border-radius:9px;padding:11px;font-size:.92rem;
+  font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;}
+.btn-c{background:var(--accent);color:#fff;}
+.btn-c:hover{background:#145f7a;}
+.btn-r{background:var(--bg);color:var(--text);border:1px solid var(--border);}
+.btn-r:hover{background:#e4eaf4;}
 
-    .topbar h1 {
-      margin: 0;
-      font-size: 1.7rem;
-    }
+/* result highlight */
+.rhl{background:var(--red-bg);border:1px solid rgba(192,57,43,.18);
+  border-radius:var(--r);padding:16px;text-align:center;margin-bottom:10px;}
+.rhl .rlb{font-size:.78rem;color:var(--muted);}
+.rhl .rlv{font-size:2.2rem;font-weight:900;color:var(--red);line-height:1.1;margin-top:2px;}
+.rhl .rls{font-size:.78rem;color:var(--muted);margin-top:2px;}
 
-    .topbar p {
-      margin: 6px 0 0;
-      color: var(--muted);
-      line-height: 1.5;
-      font-size: 0.95rem;
-    }
+/* result grid */
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.rc{background:var(--bg);border-radius:9px;padding:9px 12px;}
+.rc .rl{font-size:.72rem;color:var(--muted);}
+.rc .rv{font-size:.96rem;font-weight:800;margin-top:3px;}
+.rc.full{grid-column:1/-1;}
 
-    .tag {
-      padding: 8px 14px;
-      background: var(--history-tag);
-      color: #18556c;
-      border-radius: 999px;
-      font-size: 0.86rem;
-      font-weight: 700;
-      white-space: nowrap;
-    }
+/* divider */
+hr{border:0;border-top:1px solid var(--border);margin:10px 0;}
+.sub-title{font-size:.74rem;color:var(--muted);font-weight:700;margin-bottom:8px;}
 
-    .screen {
-      background: var(--panel-strong);
-      border: 1px solid rgba(31, 111, 139, 0.12);
-      border-radius: 24px;
-      padding: 18px;
-      margin-bottom: 16px;
-    }
+/* formula */
+.formula{background:var(--bg);border-radius:var(--r);padding:14px;
+  font-size:.76rem;color:var(--muted);line-height:2;margin-top:10px;}
+.formula h3{font-size:.82rem;color:var(--accent);margin-bottom:6px;font-weight:700;}
+.formula strong{color:var(--text);}
 
-    .expression {
-      min-height: 26px;
-      color: var(--muted);
-      text-align: right;
-      font-size: 1rem;
-      word-break: break-all;
-    }
+/* page title */
+.pg-title{text-align:center;padding:14px 0 12px;}
+.pg-title h1{font-size:1.1rem;font-weight:800;color:var(--accent);}
+.pg-title p{font-size:.76rem;color:var(--muted);margin-top:3px;}
 
-    .result {
-      margin-top: 10px;
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      text-align: right;
-      font-weight: 700;
-      word-break: break-all;
-    }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-
-    .action-btn {
-      border: 0;
-      border-radius: 14px;
-      background: var(--panel-strong);
-      color: var(--muted);
-      padding: 10px 14px;
-      cursor: pointer;
-      font-size: 0.94rem;
-      transition: background 0.16s ease, transform 0.16s ease, color 0.16s ease;
-    }
-
-    .action-btn:hover {
-      background: #ffffff;
-      color: var(--text);
-      transform: translateY(-1px);
-    }
-
-    .keys {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 12px;
-    }
-
-    .key {
-      border: 0;
-      min-height: 68px;
-      border-radius: 20px;
-      font-size: 1.18rem;
-      font-weight: 700;
-      cursor: pointer;
-      color: var(--text);
-      background: var(--number);
-      box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.04);
-      transition: transform 0.16s ease, background 0.16s ease;
-    }
-
-    .key:hover {
-      transform: translateY(-2px);
-      background: var(--number-hover);
-    }
-
-    .key.utility {
-      background: var(--utility);
-    }
-
-    .key.utility:hover {
-      background: var(--utility-hover);
-    }
-
-    .key.operator {
-      background: var(--operator);
-    }
-
-    .key.operator:hover {
-      background: var(--operator-hover);
-    }
-
-    .key.equal {
-      background: var(--equal);
-      color: #fff;
-    }
-
-    .key.equal:hover {
-      background: var(--equal-hover);
-    }
-
-    .span-2 {
-      grid-column: span 2;
-    }
-
-    .span-full {
-      grid-column: 1 / -1;
-    }
-
-    .history {
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-      min-height: 700px;
-    }
-
-    .history h2 {
-      margin: 0;
-      font-size: 1.22rem;
-    }
-
-    .history p {
-      margin: 6px 0 16px;
-      color: var(--muted);
-      line-height: 1.5;
-      font-size: 0.94rem;
-    }
-
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      overflow: auto;
-      padding-right: 4px;
-    }
-
-    .history-empty {
-      flex: 1;
-      display: grid;
-      place-items: center;
-      text-align: center;
-      color: var(--muted);
-      border: 1px dashed rgba(22, 35, 56, 0.14);
-      border-radius: 22px;
-      background: rgba(255, 255, 255, 0.45);
-      min-height: 220px;
-      line-height: 1.7;
-      padding: 20px;
-    }
-
-    .history-item {
-      background: rgba(255, 255, 255, 0.88);
-      border: 1px solid rgba(31, 111, 139, 0.1);
-      border-radius: 20px;
-      padding: 14px 16px;
-    }
-
-    .history-meta {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      color: var(--muted);
-      font-size: 0.84rem;
-      margin-bottom: 10px;
-    }
-
-    .history-expression {
-      font-size: 1rem;
-      margin-bottom: 8px;
-      word-break: break-all;
-    }
-
-    .history-result {
-      font-size: 1.18rem;
-      font-weight: 700;
-      word-break: break-all;
-    }
-
-    .history-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
-    .history-btn {
-      border: 0;
-      border-radius: 999px;
-      padding: 8px 12px;
-      cursor: pointer;
-      background: #e9f2f9;
-      color: #225a79;
-      font-size: 0.88rem;
-    }
-
-    .history-btn:hover {
-      background: #d8eaf7;
-    }
-
-    .converters {
-      grid-column: 1 / -1;
-      padding: 22px;
-    }
-
-    .converters h2 {
-      margin: 0;
-      font-size: 1.22rem;
-    }
-
-    .converters p {
-      margin: 6px 0 18px;
-      color: var(--muted);
-      line-height: 1.5;
-      font-size: 0.94rem;
-    }
-
-    .converter-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(260px, 1fr));
-      gap: 16px;
-    }
-
-    .converter-card {
-      background: rgba(255, 255, 255, 0.82);
-      border: 1px solid rgba(31, 111, 139, 0.1);
-      border-radius: 22px;
-      padding: 18px;
-    }
-
-    .converter-card h3 {
-      margin: 0 0 8px;
-      font-size: 1rem;
-    }
-
-    .converter-card label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .converter-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .converter-field {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .converter-card input {
-      width: 100%;
-      border: 1px solid rgba(22, 35, 56, 0.14);
-      background: #fff;
-      border-radius: 14px;
-      padding: 12px 14px;
-      font-size: 1rem;
-      color: var(--text);
-      outline: none;
-    }
-
-    .converter-card input:focus {
-      border-color: rgba(31, 111, 139, 0.45);
-      box-shadow: 0 0 0 4px rgba(31, 111, 139, 0.08);
-    }
-
-    .converter-result {
-      margin-top: 14px;
-      padding: 14px;
-      border-radius: 16px;
-      background: #f6fafc;
-      font-size: 1rem;
-      line-height: 1.6;
-    }
-
-    .converter-result strong {
-      display: block;
-      font-size: 1.2rem;
-      margin-top: 4px;
-    }
-
-    @media (max-width: 920px) {
-      .app {
-        grid-template-columns: 1fr;
-      }
-
-      .history {
-        min-height: auto;
-      }
-
-      .converter-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .converter-row {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 520px) {
-      body {
-        padding: 14px;
-      }
-
-      .calculator,
-      .history {
-        padding: 16px;
-      }
-
-      .key {
-        min-height: 60px;
-        border-radius: 16px;
-      }
-
-      .topbar {
-        flex-direction: column;
-      }
-    }
-  </style>
+/* sub-section divider inside a card */
+.sub-sep{border:0;border-top:1px dashed var(--border);margin:12px 0;}
+.sub-label{font-size:.75rem;font-weight:700;color:var(--muted);
+  margin-bottom:10px;padding:4px 8px;background:var(--bg);
+  border-radius:6px;display:inline-block;}
+</style>
 </head>
 <body>
-  <main class="app">
-    <section class="panel calculator" aria-label="普通计算器">
-      <div class="topbar">
-        <div>
-          <h1>普通计算器</h1>
-          <p>标准四则运算，输入清晰，历史记录自动保存，适合日常直接使用。</p>
+<div class="wrap">
+
+  <div class="pg-title">
+    <h1>包装袋成本计算器 / Packaging Bag Cost Calculator</h1>
+    <p>三层复合膜结构（PET / PET / LDPE）· Three-layer Laminated Structure</p>
+  </div>
+
+  <!-- 单价置顶 / Price at Top -->
+  <div class="price-bar">
+    <label>原料单价 / Material Price</label>
+    <input id="price" type="number" value="510.0000" min="0" step="0.0001"/>
+    <span>taka / kg</span>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT: Inputs -->
+    <div>
+
+      <!-- Bag Parameters -->
+      <div class="card">
+        <div class="card-h">袋子参数 / Bag Parameters</div>
+        <div class="card-b">
+          <div class="row">
+            <div class="field">
+              <label>袋子类型 / Bag Type</label>
+              <select id="bagType">
+                <option value="roll">卷膜袋 / Roll Film Bag</option>
+                <option value="three">三边封袋 / 3-Side Seal Bag</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>高度 / Height (mm)</label>
+              <input id="H" type="number" value="150" min="1"/>
+            </div>
+          </div>
+          <div class="row single">
+            <div class="field">
+              <label>宽度 / Width (mm)</label>
+              <input id="W" type="number" value="200" min="1"/>
+            </div>
+          </div>
         </div>
-        <div class="tag" id="historyCount">0 条历史</div>
       </div>
 
-      <div class="screen" aria-live="polite">
-        <div class="expression" id="expression">0</div>
-        <div class="result" id="result">0</div>
-      </div>
+      <!-- ① 三层膜 grouped card -->
+      <div class="card">
+        <div class="card-h">🎞 复合膜材料 / Film Layers（共3层 / 3 Layers）</div>
+        <div class="card-b">
 
-      <div class="actions">
-        <button class="action-btn" id="copyResultBtn" type="button">复制结果</button>
-        <button class="action-btn" id="clearHistoryBtn" type="button">清空历史</button>
-      </div>
-
-      <div class="keys" id="keys">
-        <button class="key utility" data-action="clear" type="button">AC</button>
-        <button class="key utility" data-action="backspace" type="button">⌫</button>
-        <button class="key operator" data-value="(" type="button">(</button>
-        <button class="key operator" data-value=")" type="button">)</button>
-        <button class="key operator" data-value="/" type="button">÷</button>
-
-        <button class="key" data-value="7" type="button">7</button>
-        <button class="key" data-value="8" type="button">8</button>
-        <button class="key" data-value="9" type="button">9</button>
-        <button class="key operator" data-value="%" type="button">%</button>
-        <button class="key operator" data-value="*" type="button">×</button>
-
-        <button class="key" data-value="4" type="button">4</button>
-        <button class="key" data-value="5" type="button">5</button>
-        <button class="key" data-value="6" type="button">6</button>
-        <button class="key operator" data-value="-" type="button">-</button>
-        <button class="key operator" data-value="+" type="button">+</button>
-
-        <button class="key" data-value="1" type="button">1</button>
-        <button class="key" data-value="2" type="button">2</button>
-        <button class="key" data-value="3" type="button">3</button>
-        <button class="key span-2" data-value="0" type="button">0</button>
-
-        <button class="key" data-value="." type="button">.</button>
-        <button class="key equal span-full" data-action="calculate" type="button">=</button>
-      </div>
-    </section>
-
-    <aside class="panel history" aria-label="输入历史">
-      <div>
-        <h2>输入历史</h2>
-        <p>每次按下等号后自动记录表达式、结果和时间。点击历史项可以继续使用。</p>
-      </div>
-      <div class="history-list" id="historyList"></div>
-      <div class="history-empty" id="historyEmpty">
-        还没有历史记录。<br>
-        先完成一次计算，这里就会显示你的输入历史。
-      </div>
-    </aside>
-
-    <section class="panel converters" aria-label="单位换算">
-      <div>
-        <h2>单位换算</h2>
-        <p>页面底部提供两个常用换算区域，输入后会自动换算。</p>
-      </div>
-      <div class="converter-grid">
-        <article class="converter-card">
-          <h3>米转 ft</h3>
-          <div class="converter-row">
-            <div class="converter-field">
-              <label for="meterInput">米（m）</label>
-              <input id="meterInput" type="number" inputmode="decimal" step="any" placeholder="例如 1.75">
+          <div class="sub-label">第一层 / Layer 1</div>
+          <div class="row">
+            <div class="field">
+              <label>材料 / Material</label>
+              <select id="l1m">
+                <option value="PET" selected>PET</option>
+                <option value="MPET">MPET</option>
+                <option value="BOPP">BOPP</option>
+                <option value="CPP">CPP</option>
+                <option value="NY">NY / Nylon</option>
+                <option value="AL">AL Foil</option>
+                <option value="LDPE">LDPE</option>
+              </select>
             </div>
-            <div class="converter-field">
-              <label for="feetInput">英尺（ft）</label>
-              <input id="feetInput" type="number" inputmode="decimal" step="any" placeholder="例如 5.741">
+            <div class="field">
+              <label>厚度 / Thickness (μm)</label>
+              <input id="l1t" type="number" value="12" min="0"/>
             </div>
           </div>
-          <div class="converter-result" id="meterResult">
-            长度换算
-            <strong>0 m = 0 ft</strong>
+          <div class="row single" style="margin-bottom:0">
+            <div class="field">
+              <label>密度 / Density (g/cm³)</label>
+              <input id="l1d" type="number" value="1.390" min="0" step="0.001"/>
+            </div>
           </div>
-        </article>
 
-        <article class="converter-card">
-          <h3>平方米转平方 ft</h3>
-          <div class="converter-row">
-            <div class="converter-field">
-              <label for="squareMeterInput">平方米（m²）</label>
-              <input id="squareMeterInput" type="number" inputmode="decimal" step="any" placeholder="例如 80">
+          <hr class="sub-sep"/>
+          <div class="sub-label">第二层 / Layer 2</div>
+          <div class="row">
+            <div class="field">
+              <label>材料 / Material</label>
+              <select id="l2m">
+                <option value="PET" selected>PET</option>
+                <option value="MPET">MPET</option>
+                <option value="BOPP">BOPP</option>
+                <option value="CPP">CPP</option>
+                <option value="NY">NY / Nylon</option>
+                <option value="AL">AL Foil</option>
+                <option value="LDPE">LDPE</option>
+              </select>
             </div>
-            <div class="converter-field">
-              <label for="squareFeetInput">平方英尺（sq ft）</label>
-              <input id="squareFeetInput" type="number" inputmode="decimal" step="any" placeholder="例如 861.113">
+            <div class="field">
+              <label>厚度 / Thickness (μm)</label>
+              <input id="l2t" type="number" value="12" min="0"/>
             </div>
           </div>
-          <div class="converter-result" id="squareMeterResult">
-            面积换算
-            <strong>0 m² = 0 sq ft</strong>
+          <div class="row single" style="margin-bottom:0">
+            <div class="field">
+              <label>密度 / Density (g/cm³)</label>
+              <input id="l2d" type="number" value="1.390" min="0" step="0.001"/>
+            </div>
           </div>
-        </article>
+
+          <hr class="sub-sep"/>
+          <div class="sub-label">第三层 / Layer 3</div>
+          <div class="row">
+            <div class="field">
+              <label>材料 / Material</label>
+              <select id="l3m">
+                <option value="LDPE" selected>LDPE</option>
+                <option value="CPP">CPP</option>
+                <option value="PET">PET</option>
+                <option value="MPET">MPET</option>
+                <option value="BOPP">BOPP</option>
+                <option value="NY">NY / Nylon</option>
+                <option value="AL">AL Foil</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>厚度 / Thickness (μm)</label>
+              <input id="l3t" type="number" value="30" min="0"/>
+            </div>
+          </div>
+          <div class="row single" style="margin-bottom:0">
+            <div class="field">
+              <label>密度 / Density (g/cm³)</label>
+              <input id="l3d" type="number" value="0.921" min="0" step="0.001"/>
+            </div>
+          </div>
+
+        </div>
       </div>
-    </section>
-  </main>
 
-  <script>
-    const STORAGE_KEY = "normal-calculator-history-v1";
-    const MAX_HISTORY = 50;
+      <!-- ② 油墨 + 胶水 grouped card -->
+      <div class="card">
+        <div class="card-h">🖨 油墨 &amp; 胶水 / Ink &amp; Adhesives</div>
+        <div class="card-b">
 
-    const expressionEl = document.getElementById("expression");
-    const resultEl = document.getElementById("result");
-    const historyListEl = document.getElementById("historyList");
-    const historyEmptyEl = document.getElementById("historyEmpty");
-    const historyCountEl = document.getElementById("historyCount");
-    const copyResultBtn = document.getElementById("copyResultBtn");
-    const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-    const keysEl = document.getElementById("keys");
-    const meterInput = document.getElementById("meterInput");
-    const feetInput = document.getElementById("feetInput");
-    const squareMeterInput = document.getElementById("squareMeterInput");
-    const squareFeetInput = document.getElementById("squareFeetInput");
-    const meterResultEl = document.getElementById("meterResult");
-    const squareMeterResultEl = document.getElementById("squareMeterResult");
-
-    let expression = "";
-    let lastActionWasEqual = false;
-    let history = loadHistory();
-
-    function loadHistory() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch (error) {
-        return [];
-      }
-    }
-
-    function saveHistory() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-    }
-
-    function isOperator(char) {
-      return ["+", "-", "*", "/", "%"].includes(char);
-    }
-
-    function getCurrentNumber() {
-      const parts = expression.split(/[+\-*/%]/);
-      return parts[parts.length - 1] || "";
-    }
-
-    function appendValue(value) {
-      if (lastActionWasEqual && /[0-9.]/.test(value)) {
-        expression = "";
-      }
-
-      if (value === "(") {
-        if (expression && /[0-9.)]/.test(expression.slice(-1))) {
-          expression += "*(";
-        } else {
-          expression += "(";
-        }
-        lastActionWasEqual = false;
-        updateDisplay();
-        return;
-      }
-
-      if (value === ")") {
-        const openCount = (expression.match(/\(/g) || []).length;
-        const closeCount = (expression.match(/\)/g) || []).length;
-        if (openCount > closeCount && expression && !isOperator(expression.slice(-1)) && expression.slice(-1) !== "(") {
-          expression += ")";
-          lastActionWasEqual = false;
-          updateDisplay();
-        }
-        return;
-      }
-
-      if (isOperator(value)) {
-        if (!expression) {
-          if (value === "-") {
-            expression = "-";
-          }
-          updateDisplay();
-          lastActionWasEqual = false;
-          return;
-        }
-
-        const lastChar = expression.slice(-1);
-        if (isOperator(lastChar)) {
-          expression = expression.slice(0, -1) + value;
-        } else {
-          expression += value;
-        }
-        lastActionWasEqual = false;
-        updateDisplay();
-        return;
-      }
-
-      if (value === ".") {
-        if (getCurrentNumber().includes(".")) {
-          return;
-        }
-        if (!expression || isOperator(expression.slice(-1))) {
-          expression += "0";
-        }
-      }
-
-      expression += value;
-      lastActionWasEqual = false;
-      updateDisplay();
-    }
-
-    function clearAll() {
-      expression = "";
-      lastActionWasEqual = false;
-      updateDisplay();
-    }
-
-    function backspace() {
-      expression = expression.slice(0, -1);
-      lastActionWasEqual = false;
-      updateDisplay();
-    }
-
-    function formatNumber(value) {
-      const rounded = Number.parseFloat(Number(value).toFixed(12));
-      return String(rounded);
-    }
-
-    function evaluateExpression(input) {
-      if (!input) {
-        return { success: false, value: "0" };
-      }
-
-      if (!/^[0-9+\-*/%.()\s]+$/.test(input)) {
-        return { success: false, value: "表达式错误" };
-      }
-
-      try {
-        const result = Function(`"use strict"; return (${input})`)();
-        if (typeof result !== "number" || !Number.isFinite(result)) {
-          return { success: false, value: "无法计算" };
-        }
-        return { success: true, value: formatNumber(result) };
-      } catch (error) {
-        return { success: false, value: "表达式错误" };
-      }
-    }
-
-    function updateDisplay() {
-      expressionEl.textContent = expression || "0";
-      if (!expression) {
-        resultEl.textContent = "0";
-        return;
-      }
-
-      const evaluated = evaluateExpression(expression);
-      resultEl.textContent = evaluated.success ? evaluated.value : "0";
-    }
-
-    function addHistoryItem(expressionText, resultText) {
-      history.unshift({
-        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        expression: expressionText,
-        result: resultText,
-        time: new Date().toLocaleString("zh-CN", { hour12: false })
-      });
-      history = history.slice(0, MAX_HISTORY);
-      saveHistory();
-      renderHistory();
-    }
-
-    function calculate() {
-      if (!expression) {
-        return;
-      }
-
-      const evaluated = evaluateExpression(expression);
-      if (!evaluated.success) {
-        resultEl.textContent = evaluated.value;
-        return;
-      }
-
-      addHistoryItem(expression, evaluated.value);
-      expression = evaluated.value;
-      lastActionWasEqual = true;
-      updateDisplay();
-    }
-
-    function renderHistory() {
-      historyListEl.innerHTML = "";
-      historyCountEl.textContent = `${history.length} 条历史`;
-      historyEmptyEl.style.display = history.length ? "none" : "grid";
-
-      history.forEach((item, index) => {
-        const card = document.createElement("article");
-        card.className = "history-item";
-        card.innerHTML = `
-          <div class="history-meta">
-            <span>${escapeHtml(item.time)}</span>
-            <span>#${history.length - index}</span>
+          <div class="sub-label">油墨 / Ink &nbsp;·&nbsp; L1 与 L2 之间 / Between L1 &amp; L2</div>
+          <div class="row">
+            <div class="field">
+              <label>GSM (g/m²)</label>
+              <input id="inkG" type="number" value="2.0000" min="0" step="0.0001"/>
+            </div>
+            <div class="field">
+              <label>密度 / Density (g/cm³)</label>
+              <input id="inkD" type="number" value="1.040" min="0" step="0.001"/>
+            </div>
           </div>
-          <div class="history-expression">${escapeHtml(item.expression)}</div>
-          <div class="history-result">= ${escapeHtml(item.result)}</div>
-          <div class="history-actions">
-            <button class="history-btn" type="button" data-expression="${escapeAttribute(item.expression)}">继续计算</button>
-            <button class="history-btn" type="button" data-result="${escapeAttribute(item.result)}">复制结果</button>
+          <div class="thk-tag" style="margin-bottom:0">实际厚度 / Actual Thickness: <strong id="inkThk">—</strong> μm</div>
+
+          <hr class="sub-sep"/>
+          <div class="sub-label">胶水1 / Adhesive 1 &nbsp;·&nbsp; L1 与 L2 之间 / Between L1 &amp; L2</div>
+          <div class="row">
+            <div class="field">
+              <label>GSM (g/m²)</label>
+              <input id="a1G" type="number" value="1.5000" min="0" step="0.0001"/>
+            </div>
+            <div class="field">
+              <label>密度 / Density (g/cm³)</label>
+              <input id="a1D" type="number" value="1.140" min="0" step="0.001"/>
+            </div>
           </div>
-        `;
-        historyListEl.appendChild(card);
-      });
-    }
+          <div class="thk-tag" style="margin-bottom:0">实际厚度 / Actual Thickness: <strong id="a1Thk">—</strong> μm</div>
 
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-    }
+          <hr class="sub-sep"/>
+          <div class="sub-label">胶水2 / Adhesive 2 &nbsp;·&nbsp; L2 与 L3 之间 / Between L2 &amp; L3</div>
+          <div class="row">
+            <div class="field">
+              <label>GSM (g/m²)</label>
+              <input id="a2G" type="number" value="1.5000" min="0" step="0.0001"/>
+            </div>
+            <div class="field">
+              <label>密度 / Density (g/cm³)</label>
+              <input id="a2D" type="number" value="1.140" min="0" step="0.001"/>
+            </div>
+          </div>
+          <div class="thk-tag" style="margin-bottom:0">实际厚度 / Actual Thickness: <strong id="a2Thk">—</strong> μm</div>
 
-    function escapeAttribute(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;");
-    }
+        </div>
+      </div>
 
-    async function copyText(text) {
-      try {
-        await navigator.clipboard.writeText(String(text));
-        copyResultBtn.textContent = "已复制";
-      } catch (error) {
-        copyResultBtn.textContent = "复制失败";
-      }
+      <div class="btn-row">
+        <button class="btn-c" id="calcBtn">计算 / Calculate</button>
+        <button class="btn-r" id="resetBtn">重置 / Reset</button>
+      </div>
+    </div>
 
-      setTimeout(() => {
-        copyResultBtn.textContent = "复制结果";
-      }, 1200);
-    }
+    <!-- RIGHT: Results -->
+    <div class="sticky">
 
-    keysEl.addEventListener("click", (event) => {
-      const button = event.target.closest("button");
-      if (!button) {
-        return;
-      }
+      <div class="card">
+        <div class="card-h">计算结果 / Calculation Results</div>
+        <div class="card-b">
 
-      const action = button.dataset.action;
-      const value = button.dataset.value;
+          <!-- Main cost -->
+          <div class="rhl">
+            <div class="rlb">单个袋子成本 / Cost per Bag</div>
+            <div class="rlv" id="rCost">—</div>
+            <div class="rls">taka / bag</div>
+          </div>
 
-      if (value) {
-        appendValue(value);
-        return;
-      }
+          <div class="rg">
+            <div class="rc">
+              <div class="rl">每公斤袋子数 / Bags per kg</div>
+              <div class="rv" id="rBpkg">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">单袋重量 / Weight per Bag</div>
+              <div class="rv" id="rWt">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">展开面积 / Open Area</div>
+              <div class="rv" id="rArea">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">膜层总厚度 / Film Thickness</div>
+              <div class="rv" id="rFilm">—</div>
+            </div>
+            <div class="rc full">
+              <div class="rl">实际总厚度（含墨胶）/ Total Thickness incl. Ink &amp; Adhesives</div>
+              <div class="rv" id="rTotalThk">—</div>
+            </div>
+          </div>
 
-      if (action === "clear") {
-        clearAll();
-      } else if (action === "backspace") {
-        backspace();
-      } else if (action === "calculate") {
-        calculate();
-      }
-    });
+          <hr/>
+          <div class="sub-title">各层详情 / Per-Layer Breakdown</div>
+          <div class="rg">
+            <div class="rc">
+              <div class="rl">L1 厚度 / Thickness</div>
+              <div class="rv" id="dL1t">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">L1 重量 / Weight</div>
+              <div class="rv" id="dL1w">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">油墨厚度 / Ink Thickness</div>
+              <div class="rv" id="dInkT">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">油墨重量 / Ink Weight</div>
+              <div class="rv" id="dInkW">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">胶水1厚度 / Adh.1 Thickness</div>
+              <div class="rv" id="dA1T">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">胶水1重量 / Adh.1 Weight</div>
+              <div class="rv" id="dA1W">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">L2 厚度 / Thickness</div>
+              <div class="rv" id="dL2t">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">L2 重量 / Weight</div>
+              <div class="rv" id="dL2w">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">胶水2厚度 / Adh.2 Thickness</div>
+              <div class="rv" id="dA2T">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">胶水2重量 / Adh.2 Weight</div>
+              <div class="rv" id="dA2W">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">L3 厚度 / Thickness</div>
+              <div class="rv" id="dL3t">—</div>
+            </div>
+            <div class="rc">
+              <div class="rl">L3 重量 / Weight</div>
+              <div class="rv" id="dL3w">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    historyListEl.addEventListener("click", async (event) => {
-      const expressionButton = event.target.closest("[data-expression]");
-      const resultButton = event.target.closest("[data-result]");
+      <!-- Formula at bottom -->
+      <div class="formula">
+        <h3>计算逻辑 / Calculation Logic</h3>
+        展开面积 Open Area = <strong>H(mm) × W(mm) ÷ 100</strong> → cm²<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;换算 Convert: cm² ÷ 10000 → m²<br>
+        膜层重量 Film weight = <strong>面积(cm²) × 厚度(μm) × 0.0001 × 密度(g/cm³)</strong> → g<br>
+        墨/胶重量 Ink/Adh. weight = <strong>面积(m²) × GSM(g/m²)</strong> → g<br>
+        实际厚度 Actual thickness = <strong>GSM ÷ 密度(g/cm³)</strong> → μm<br>
+        总重量 Total weight = <strong>L1 + 油墨 + 胶水1 + L2 + 胶水2 + L3</strong> → g<br>
+        单袋成本 Cost/bag = <strong>总重量(g) ÷ 1000 × 单价(taka/kg)</strong> → taka<br>
+        每公斤袋数 Bags/kg = <strong>1000 ÷ 总重量(g)</strong>
+      </div>
 
-      if (expressionButton) {
-        expression = expressionButton.dataset.expression;
-        lastActionWasEqual = false;
-        updateDisplay();
-      }
+    </div>
+  </div>
+</div>
 
-      if (resultButton) {
-        await copyText(resultButton.dataset.result);
-      }
-    });
+<script>
+const PRESETS={
+  PET:{d:1.390,t:12},MPET:{d:1.390,t:12},BOPP:{d:0.905,t:20},
+  CPP:{d:0.905,t:25},NY:{d:1.140,t:15},AL:{d:2.700,t:7},LDPE:{d:0.921,t:30}
+};
+const $=id=>document.getElementById(id);
+const f4=v=>(+v||0).toFixed(4);
+const f2=v=>(+v||0).toFixed(2);
+const fi=v=>Math.round(+v||0)+' μm';
 
-    copyResultBtn.addEventListener("click", async () => {
-      await copyText(resultEl.textContent);
-    });
+function calc(){
+  const price=+$('price').value||0;
+  const H=+$('H').value||0, W=+$('W').value||0;
+  const l1t=+$('l1t').value||0, l1d=+$('l1d').value||0;
+  const l2t=+$('l2t').value||0, l2d=+$('l2d').value||0;
+  const l3t=+$('l3t').value||0, l3d=+$('l3d').value||0;
+  const inkG=+$('inkG').value||0, inkD=+$('inkD').value||0;
+  const a1G=+$('a1G').value||0,  a1D=+$('a1D').value||0;
+  const a2G=+$('a2G').value||0,  a2D=+$('a2D').value||0;
 
-    clearHistoryBtn.addEventListener("click", () => {
-      history = [];
-      saveHistory();
-      renderHistory();
-    });
+  const cm2=H*W/100, m2=cm2/10000;
+  const w1=cm2*l1t*0.0001*l1d;
+  const w2=cm2*l2t*0.0001*l2d;
+  const w3=cm2*l3t*0.0001*l3d;
+  const wInk=m2*inkG, wA1=m2*a1G, wA2=m2*a2G;
+  const total=w1+w2+w3+wInk+wA1+wA2;
 
-    document.addEventListener("keydown", (event) => {
-      if ("0123456789+-*/%.()".includes(event.key)) {
-        appendValue(event.key);
-        return;
-      }
+  const inkThk=inkD>0?inkG/inkD:0;
+  const a1Thk=a1D>0?a1G/a1D:0;
+  const a2Thk=a2D>0?a2G/a2D:0;
+  const filmThk=l1t+l2t+l3t;
+  const totalThk=filmThk+inkThk+a1Thk+a2Thk;
+  const cost=total/1000*price;
+  const bpkg=total>0?1000/total:0;
 
-      if (event.key === "Enter" || event.key === "=") {
-        event.preventDefault();
-        calculate();
-        return;
-      }
+  $('inkThk').textContent=f4(inkThk);
+  $('a1Thk').textContent=f4(a1Thk);
+  $('a2Thk').textContent=f4(a2Thk);
 
-      if (event.key === "Backspace") {
-        backspace();
-        return;
-      }
+  $('rCost').textContent=f4(cost);
+  $('rBpkg').textContent=f2(bpkg)+' bags';
+  $('rWt').textContent=f4(total)+' g';
+  $('rArea').textContent=f4(cm2)+' cm²';
+  $('rFilm').textContent=fi(filmThk);
+  $('rTotalThk').textContent=f4(totalThk)+' μm';
 
-      if (event.key === "Escape") {
-        clearAll();
-      }
-    });
+  $('dL1t').textContent=fi(l1t);   $('dL1w').textContent=f4(w1)+' g';
+  $('dInkT').textContent=f4(inkThk)+' μm'; $('dInkW').textContent=f4(wInk)+' g';
+  $('dA1T').textContent=f4(a1Thk)+' μm';  $('dA1W').textContent=f4(wA1)+' g';
+  $('dL2t').textContent=fi(l2t);   $('dL2w').textContent=f4(w2)+' g';
+  $('dA2T').textContent=f4(a2Thk)+' μm';  $('dA2W').textContent=f4(wA2)+' g';
+  $('dL3t').textContent=fi(l3t);   $('dL3w').textContent=f4(w3)+' g';
+}
 
-    function formatConvertedNumber(value) {
-      return Number.parseFloat(value.toFixed(6)).toString();
-    }
+function applyPreset(matId,tId,dId){
+  const p=PRESETS[$( matId).value];
+  if(!p)return;
+  $(tId).value=p.t;
+  $(dId).value=p.d.toFixed(3);
+  calc();
+}
 
-    function clearLengthResult() {
-      meterResultEl.innerHTML = "长度换算<strong>0 m = 0 ft</strong>";
-    }
+function reset(){
+  $('price').value='510.0000';
+  $('H').value='150'; $('W').value='200'; $('bagType').value='roll';
+  $('l1m').value='PET';  $('l1t').value='12'; $('l1d').value='1.390';
+  $('l2m').value='PET';  $('l2t').value='12'; $('l2d').value='1.390';
+  $('l3m').value='LDPE'; $('l3t').value='30'; $('l3d').value='0.921';
+  $('inkG').value='2.0000'; $('inkD').value='1.040';
+  $('a1G').value='1.5000';  $('a1D').value='1.140';
+  $('a2G').value='1.5000';  $('a2D').value='1.140';
+  calc();
+}
 
-    function clearAreaResult() {
-      squareMeterResultEl.innerHTML = "面积换算<strong>0 m² = 0 sq ft</strong>";
-    }
-
-    function updateLengthFromMeters() {
-      const meters = Number.parseFloat(meterInput.value);
-      if (!Number.isFinite(meters)) {
-        feetInput.value = "";
-        clearLengthResult();
-        return;
-      }
-
-      const feet = meters * 3.280839895;
-      feetInput.value = formatConvertedNumber(feet);
-      meterResultEl.innerHTML = `长度换算<strong>${formatConvertedNumber(meters)} m = ${formatConvertedNumber(feet)} ft</strong>`;
-    }
-
-    function updateLengthFromFeet() {
-      const feet = Number.parseFloat(feetInput.value);
-      if (!Number.isFinite(feet)) {
-        meterInput.value = "";
-        clearLengthResult();
-        return;
-      }
-
-      const meters = feet / 3.280839895;
-      meterInput.value = formatConvertedNumber(meters);
-      meterResultEl.innerHTML = `长度换算<strong>${formatConvertedNumber(meters)} m = ${formatConvertedNumber(feet)} ft</strong>`;
-    }
-
-    function updateAreaFromSquareMeters() {
-      const squareMeters = Number.parseFloat(squareMeterInput.value);
-      if (!Number.isFinite(squareMeters)) {
-        squareFeetInput.value = "";
-        clearAreaResult();
-        return;
-      }
-
-      const squareFeet = squareMeters * 10.763910417;
-      squareFeetInput.value = formatConvertedNumber(squareFeet);
-      squareMeterResultEl.innerHTML = `面积换算<strong>${formatConvertedNumber(squareMeters)} m² = ${formatConvertedNumber(squareFeet)} sq ft</strong>`;
-    }
-
-    function updateAreaFromSquareFeet() {
-      const squareFeet = Number.parseFloat(squareFeetInput.value);
-      if (!Number.isFinite(squareFeet)) {
-        squareMeterInput.value = "";
-        clearAreaResult();
-        return;
-      }
-
-      const squareMeters = squareFeet / 10.763910417;
-      squareMeterInput.value = formatConvertedNumber(squareMeters);
-      squareMeterResultEl.innerHTML = `面积换算<strong>${formatConvertedNumber(squareMeters)} m² = ${formatConvertedNumber(squareFeet)} sq ft</strong>`;
-    }
-
-    meterInput.addEventListener("input", updateLengthFromMeters);
-    feetInput.addEventListener("input", updateLengthFromFeet);
-    squareMeterInput.addEventListener("input", updateAreaFromSquareMeters);
-    squareFeetInput.addEventListener("input", updateAreaFromSquareFeet);
-
-    renderHistory();
-    updateDisplay();
-    clearLengthResult();
-    clearAreaResult();
-  </script>
+['price','H','W','bagType','l1t','l1d','l2t','l2d','l3t','l3d',
+ 'inkG','inkD','a1G','a1D','a2G','a2D'].forEach(id=>{
+  $(id).addEventListener('input',calc);
+  $(id).addEventListener('change',calc);
+});
+$('l1m').addEventListener('change',()=>applyPreset('l1m','l1t','l1d'));
+$('l2m').addEventListener('change',()=>applyPreset('l2m','l2t','l2d'));
+$('l3m').addEventListener('change',()=>applyPreset('l3m','l3t','l3d'));
+$('calcBtn').addEventListener('click',calc);
+$('resetBtn').addEventListener('click',reset);
+calc();
+</script>
 </body>
 </html>
+
